@@ -1,0 +1,1 @@
+The `Table` class has a method `snapshot_as_of_timestamp(timestamp_ms: int, inclusive: bool = True)` which can be used to get a snapshot for a given timestamp.
