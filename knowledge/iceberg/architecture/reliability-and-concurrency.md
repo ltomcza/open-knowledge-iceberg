@@ -14,7 +14,10 @@ Read this for how Iceberg guarantees correctness under concurrent writers
 and eventually-consistent object stores. For what a commit actually swaps,
 see [snapshots-and-versioning.md](snapshots-and-versioning.md) and
 [metadata-layer.md](metadata-layer.md). For the general architecture this
-builds on, see [table-format-overview.md](table-format-overview.md).
+builds on, see [table-format-overview.md](table-format-overview.md). For
+how Spark overwrites opt into conflict validation (`isolation-level`,
+`validate-from-snapshot-id`) and how to retry them safely, see
+[/performance/full-partition-rewrite-and-safe-overwrite.md](/performance/full-partition-rewrite-and-safe-overwrite.md).
 
 # Summary
 

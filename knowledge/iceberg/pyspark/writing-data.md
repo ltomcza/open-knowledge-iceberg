@@ -188,6 +188,12 @@ data.writeTo("prod.db.table").overwritePartitions()
 data.writeTo("prod.db.table").overwrite(F.col("level") == "INFO")
 ```
 
+Neither call checks for concurrent changes by default (the `isolation-level`
+write option defaults to `null`). For conflict-safe overwrites, empty-input
+pitfalls, and the SQL equivalent `INSERT INTO ... REPLACE WHERE` (Spark 3.4+),
+see
+[/performance/full-partition-rewrite-and-safe-overwrite.md](/performance/full-partition-rewrite-and-safe-overwrite.md).
+
 ## Creating tables (CTAS / RTAS)
 
 ```python

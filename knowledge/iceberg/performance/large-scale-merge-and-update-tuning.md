@@ -235,6 +235,12 @@ regularly**. Read cost grows with every MOR commit that isn't compacted.
   `write.delete.isolation-level` default to `serializable`. `snapshot` is
   more permissive (it only checks for conflicting deletes). Use it when
   concurrent appends to the same partitions are expected and acceptable.
+- These table properties do **not** cover `overwritePartitions()` /
+  `overwrite()` / `INSERT OVERWRITE`. Those are unchecked unless you pass
+  the `isolation-level` and `validate-from-snapshot-id` write options. If
+  *every* row of a partition changes, replacing the partition is usually
+  the better plan. See
+  [/performance/full-partition-rewrite-and-safe-overwrite.md](/performance/full-partition-rewrite-and-safe-overwrite.md).
 - Long merges conflict with concurrent compaction of the *same*
   partitions. Schedule compaction on partitions the merge has finished
   with, or run it right after the merge in the same orchestration DAG. See

@@ -5,6 +5,7 @@
 * [Sort Order and File Layout](sort-order-and-file-layout.md) - How sort order and z-order clustering improve min/max stat-based file pruning.
 * [Read/Write Performance Tuning (Spark)](read-write-performance-tuning.md) - Spark-side tuning: vectorized reads, split sizing, fanout writers, shuffle partitions.
 * [Large-Scale MERGE / UPDATE Tuning (Spark)](large-scale-merge-and-update-tuning.md) - Making MERGE/UPDATE/DELETE fast on billion-row tables: COW vs MOR, ON-clause pushdown, bounded merges, join strategy, distribution modes, delete granularity, v3 deletion vectors.
+* [Full-Partition Rewrite and Conflict-Safe Overwrite](full-partition-rewrite-and-safe-overwrite.md) - Correcting columns for every row of huge partitions by replacing them: choosing overwritePartitions / overwrite(filter) / REPLACE WHERE / COW UPDATE, opt-in `isolation-level` + `validate-from-snapshot-id` validation, retries, WAP staging, verification.
 * [Storage-Partitioned Joins (SPJ)](storage-partitioned-joins.md) - Shuffle-free joins and MERGE between identically partitioned Iceberg tables: requirements, Spark configs, query shape, verification.
 * [High-Volume Table Playbook](high-volume-table-playbook.md) - Design and tuning profile for tables ingesting hundreds of millions of rows/day: layout, file/Parquet/bloom settings, metadata, planning, daily schedule.
 * [Metrics and Monitoring](metrics-and-monitoring.md) - Iceberg's MetricsReporter interface for scan and commit observability.
