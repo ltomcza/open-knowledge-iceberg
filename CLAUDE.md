@@ -1,4 +1,4 @@
-# Claude Code guide — open-knowledge-langchain
+# Claude Code guide — open-knowledge-iceberg
 
 This repository defines the **Open Knowledge Format (OKF)** — an open,
 human- and agent-friendly format for storing knowledge as a directory of
@@ -41,3 +41,40 @@ if you change behavior in one, consider whether the other needs the same update.
 - Cross-link concepts with bundle-relative markdown links (`/tables/orders.md`).
 - Consumption is permissive: tolerate unknown `type` values, extra keys, and
   broken links rather than rejecting them.
+
+## The Iceberg bundle in this repo
+
+`knowledge/iceberg/` is an OKF bundle about Apache Iceberg and its
+PySpark / PyIceberg ecosystem. It has these sections: `architecture/`,
+`catalogs/`, `pyspark/`, `pyiceberg/`, `maintenance/`, `performance/`,
+`tutorials/`, plus `cheat-sheet.md`. Concept links are bundle-relative,
+starting from `knowledge/iceberg/` (e.g. `/performance/index.md`).
+`.firecrawl/` holds raw doc scrapes used as source material. It is not part
+of the bundle.
+
+Concepts in this bundle follow a house style. Match it when adding or
+editing:
+
+- Frontmatter: `type`, `title`, `description`, `aliases` (the phrases a
+  user might search for), `tags`, `timestamp`, `resource`.
+- Body sections in order: `# Retrieval Notes` (when to read this note and
+  links to neighbouring concepts), then `# Summary` (bullet takeaways), then
+  topic sections with runnable PySpark/SQL, then `# Citations` (numbered
+  source links).
+- After adding a concept: list it in the section `index.md`, cross-link it
+  from related concepts in both directions, and add a dated entry to
+  `knowledge/iceberg/log.md` (newest first).
+
+## Researching new knowledge
+
+- When asked to research the web, use the tool the user names (Exa or
+  Firecrawl). Prefer official Iceberg/Spark docs and source code over blog
+  posts, and say in the concept which practitioner sources you used.
+- **Verify claims before storing them.** That includes claims in text the
+  user pastes and claims from blog posts. Check option names, defaults, and
+  SQL syntax against the docs or source code. Example: `INSERT OVERWRITE ...
+  REPLACE WHERE` is Delta Lake syntax, not Iceberg's, and
+  `write.*.isolation-level` does not govern Spark overwrites. When you
+  correct a misconception, record the correction in the concept itself.
+- Note in the concept that option defaults change across releases, and
+  mention the Iceberg/Spark version when a claim depends on it.
