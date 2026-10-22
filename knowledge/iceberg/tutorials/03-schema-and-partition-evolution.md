@@ -4,7 +4,7 @@ title: 3. Schema and Partition Evolution
 description: Add and rename a column, then change a populated table's partition spec and prove old data files are untouched while new writes follow the new layout.
 aliases: [iceberg add column, iceberg rename column, iceberg add partition field, iceberg partition evolution tutorial]
 tags: [tutorial, pyspark, schema-evolution, partitioning, intermediate]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 difficulty: intermediate
 ---
 
@@ -32,7 +32,7 @@ from pyspark.sql import SparkSession
 spark = (
     SparkSession.builder
     .appName("iceberg-tutorial")
-    .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.11.0")
+    .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.12.0")
     .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
     .config("spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog")
     .config("spark.sql.catalog.local.type", "hadoop")
@@ -158,7 +158,7 @@ from `.files`:
 spark.sql("SELECT file_path, spec_id, partition FROM local.db.people.files").show(truncate=False)
 ```
 
-**Expected output:** the two original files show `spec_id = 0`, the new file(s) show `spec_id = 1`
+**Expected output:** the original file (the two-row `INSERT ... VALUES` from step 1 writes one file) shows `spec_id = 0`, the new file(s) show `spec_id = 1`
 with a populated bucket value — proof that adding a partition field never touches existing data.
 
 # Common Pitfalls

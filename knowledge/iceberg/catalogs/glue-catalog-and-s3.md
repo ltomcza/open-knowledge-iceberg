@@ -4,7 +4,7 @@ title: AWS Glue Catalog and S3FileIO
 description: Using AWS Glue Data Catalog as an Iceberg catalog, the DynamoDB catalog alternative, and S3FileIO configuration for storage.
 aliases: [GlueCatalog, glue data catalog, S3FileIO, iceberg aws, DynamoDbCatalog, s3 catalog, aws glue iceberg]
 tags: [iceberg, catalog, aws, glue, s3, dynamodb]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/aws
 ---
 
@@ -46,11 +46,14 @@ properties unrelated to AWS, see
 The `iceberg-aws` module is bundled with Spark/Flink runtimes (0.11.0+), but
 the AWS SDK v2 clients are not — add the `iceberg-aws-bundle` (or individual
 Glue/S3/DynamoDB/KMS/STS client packages) plus an HTTP client dependency
-(Apache HTTP Client by default) at runtime.
+at runtime. Since Iceberg 1.12.0 the default is Apache HttpClient 5: if you
+supply AWS dependencies yourself, use `software.amazon.awssdk:apache5-client`
+instead of `apache-client`. Spark 3.4 runtimes were removed in 1.12.0 — use
+the 3.5, 4.0, or 4.1 runtime.
 
 ```bash
 # Spark
-spark-sql --packages org.apache.iceberg:iceberg-spark-runtime-3.4_2.12:1.11.0,org.apache.iceberg:iceberg-aws-bundle:1.11.0 \
+spark-sql --packages org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.12.0,org.apache.iceberg:iceberg-aws-bundle:1.12.0 \
     --conf spark.sql.defaultCatalog=my_catalog \
     --conf spark.sql.catalog.my_catalog=org.apache.iceberg.spark.SparkCatalog \
     --conf spark.sql.catalog.my_catalog.warehouse=s3://my-bucket/my/key/prefix \
@@ -240,3 +243,4 @@ credentials:
 # Citations
 
 [1] [Iceberg AWS Integrations](https://iceberg.apache.org/docs/latest/aws)
+[2] [Apache Iceberg — Releases (1.12.0: Spark 3.4 removed, Apache HttpClient 5 default)](https://iceberg.apache.org/releases/)

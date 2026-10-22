@@ -4,7 +4,7 @@ title: High-Volume Table Playbook (100M–1B+ rows/day)
 description: End-to-end design and tuning profile for Iceberg tables ingesting hundreds of millions of rows per day with frequent updates — partition/bucket design, sort order, file and Parquet sizing, bloom filters, metrics, manifest and planning settings, object-storage layout, and a daily operating schedule.
 aliases: [400 million rows per day, billions of rows iceberg, high throughput iceberg, large iceberg table design, iceberg at scale, iceberg production profile, performance critical iceberg]
 tags: [iceberg, performance, playbook, design, parquet, partitioning, maintenance, spark, synthesis]
-timestamp: 2026-10-21T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/configuration/
 ---
 
@@ -138,7 +138,7 @@ design the merge for pushdown and SPJ. All the details are in
 | `read.delete-planning-mode` | `auto` | Same idea for delete manifests on delete-heavy MOR tables |
 | `read.split.adaptive-size.enabled` | `true` | Lets Iceberg size splits to the scan and the cluster's parallelism |
 | `spark.sql.iceberg.executor-cache.*` | enabled, 128 MB total | Raise `max-total-size` for MOR tables whose delete files are reused across tasks |
-| `spark.sql.iceberg.aggregate-push-down.enabled` | `true` | `COUNT/MIN/MAX` answered from metadata when no deletes are present |
+| `spark.sql.iceberg.aggregate-push-down.enabled` | `true` | `COUNT/MIN/MAX` answered from metadata when no deletes are present (since 1.11, MIN/MAX push-down is disabled for string and binary columns) |
 | `spark.sql.iceberg.report-column-stats` + CBO | `true` | Uses Puffin NDV stats from `compute_table_stats` to choose joins |
 
 Queries with a partition predicate plan in about a second even with 20M+

@@ -4,7 +4,7 @@ title: Iceberg Cheat Sheet — The Three-Page Summary
 description: A condensed, memorize-this distillation of the whole bundle — architecture mental model, PySpark day-to-day syntax, and production maintenance/performance rules.
 aliases: [iceberg cheat sheet, iceberg summary, iceberg quick reference, iceberg tldr, three page summary]
 tags: [iceberg, reference, cheat-sheet, summary, pyspark, maintenance, performance]
-timestamp: 2026-08-02T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 ---
 
 # Retrieval Notes
@@ -89,7 +89,7 @@ throughout the tutorials):
 ```python
 spark = (SparkSession.builder
     .config("spark.jars.packages",
-            "org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.11.0")
+            "org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.12.0")
     .config("spark.sql.extensions",
             "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
     .config("spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog")
@@ -99,9 +99,11 @@ spark = (SparkSession.builder
     .getOrCreate())
 ```
 
-Forgetting `spark.sql.extensions` is the #1 cause of "`CALL`/`MERGE INTO`
-doesn't work" — most DDL still runs without it, so the failure shows up
-later than you'd expect. See
+Forgetting `spark.sql.extensions` is the #1 cause of "`MERGE INTO`/`UPDATE`
+or `ALTER TABLE ... ADD PARTITION FIELD` doesn't work" — most DDL still
+runs without it, so the failure shows up later than you'd expect. (`CALL`
+procedures need the extensions on Spark 3.x only; Spark 4.0+ runs them
+natively, with case-sensitive names.) See
 [/pyspark/setup-and-configuration.md](pyspark/setup-and-configuration.md).
 
 **Writing** — see [/pyspark/writing-data.md](pyspark/writing-data.md):
@@ -110,7 +112,7 @@ later than you'd expect. See
 |---|---|---|
 | `.append()` | `INSERT INTO` | Add rows |
 | `.overwritePartitions()` | `INSERT OVERWRITE` (dynamic) | Replace exactly the partitions touched by the data — **recommended default** |
-| `.overwrite(filter)` | `INSERT OVERWRITE ... PARTITION(...)` (static) | Replace rows matching a filter |
+| `.overwrite(filter)` | `INSERT INTO t REPLACE WHERE <cond> SELECT ...` (Spark 3.4+) | Replace rows matching a filter |
 | `.create()` / `.replace()` / `.createOrReplace()` | `CREATE/REPLACE TABLE AS SELECT` | New table from a DataFrame |
 
 Prefer `writeTo(...)` over the legacy `df.write.format("iceberg")` — the old
@@ -130,9 +132,10 @@ WHEN NOT MATCHED BY SOURCE THEN DELETE   -- full-state sync / hard deletes
 """)
 ```
 
-> **Pitfall:** a source row that matches more than one target row throws at
-> runtime. Dedupe the source (`ROW_NUMBER()`, `first()`) before merging,
-> especially with CDC batches.
+> **Pitfall:** if more than one *source* row matches the same *target*
+> row, the merge throws at runtime. Dedupe the source per key
+> (`ROW_NUMBER()`, `first()`) before merging, especially with CDC batches.
+> (Corrected 2026-10-22 — an earlier version stated this backwards.)
 
 **Reading & time travel** — see
 [/pyspark/reading-data-and-queries.md](pyspark/reading-data-and-queries.md):
@@ -168,12 +171,12 @@ spark.sql("SELECT * FROM local.db.people.files")
 
 ```python
 spark.sql("CALL local.system.rewrite_data_files('db.people')")
-spark.sql("CALL local.system.expire_snapshots('db.people', retain_last => 5)")
+spark.sql("CALL local.system.expire_snapshots(table => 'db.people', retain_last => 5)")  # never mix positional + named args
 spark.sql("CALL local.system.remove_orphan_files(table => 'db.people', dry_run => true)")
 ```
 
-> **Remember:** No `spark.sql.extensions` means no `CALL`, no `MERGE` — set
-> it every time. Dynamic overwrite is the sane default; static overwrite
+> **Remember:** No `spark.sql.extensions` means no `MERGE`/`UPDATE`/`DELETE`
+> rewrites (and no `CALL` on Spark 3.x) — set it every time. Dynamic overwrite is the sane default; static overwrite
 > can't see hidden partitions. `MERGE INTO` beats `INSERT OVERWRITE` for
 > upserts, always. `<table>.snapshots` / `.files` / `.history` is the
 > fastest way to debug what a job actually wrote. Every maintenance action

@@ -12,8 +12,8 @@ user's questions by finding, reading, and synthesizing knowledge stored in
 you retrieve and explain, you do not modify the bundle. (If the user wants to
 store or correct knowledge, point them to the **okf-librarian** agent.)
 
-The format is described in `.github/okf/SPEC.md` and summarized in
-`.github/instructions/okf.instructions.md`.
+The format is described in `.claude/okf/SPEC.md` and summarized in
+`.claude/rules/okf.md`.
 
 ## Safety boundaries
 

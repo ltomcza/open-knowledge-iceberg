@@ -4,7 +4,7 @@ title: 2. Your First Table - Create, Insert, Read
 description: Create a namespace and table, write data with both SQL and a PySpark DataFrame, read it back, and see the resulting files on disk.
 aliases: [create iceberg table pyspark, iceberg insert into, iceberg writeTo append, iceberg crud tutorial]
 tags: [tutorial, pyspark, ddl, writes, reads, beginner]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 difficulty: beginner
 ---
 
@@ -33,7 +33,7 @@ from pyspark.sql import SparkSession
 spark = (
     SparkSession.builder
     .appName("iceberg-tutorial")
-    .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.11.0")
+    .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.12.0")
     .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
     .config("spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog")
     .config("spark.sql.catalog.local.type", "hadoop")
@@ -148,16 +148,24 @@ data files tracked through manifests. List what's on disk:
 find /tmp/warehouse/db/people -type f
 ```
 
-**Expected output** (exact filenames will differ — they include random UUIDs):
+**Expected output** (data/manifest filenames include random UUIDs; order varies). The `local` catalog
+is a Hadoop catalog, which names table metadata `v<N>.metadata.json` and keeps a `version-hint.text`
+pointer (catalogs such as Hive or REST use `00000-<uuid>.metadata.json` instead):
 
 ```
-/tmp/warehouse/db/people/metadata/00000-....metadata.json
-/tmp/warehouse/db/people/metadata/00001-....metadata.json
-/tmp/warehouse/db/people/metadata/snap-....avro
-/tmp/warehouse/db/people/metadata/....avro
+/tmp/warehouse/db/people/metadata/version-hint.text
+/tmp/warehouse/db/people/metadata/v1.metadata.json      <- CREATE TABLE
+/tmp/warehouse/db/people/metadata/v2.metadata.json      <- INSERT INTO
+/tmp/warehouse/db/people/metadata/v3.metadata.json      <- writeTo().append()
+/tmp/warehouse/db/people/metadata/snap-...-1-....avro   <- manifest list, snapshot 1
+/tmp/warehouse/db/people/metadata/snap-...-1-....avro   <- manifest list, snapshot 2
+/tmp/warehouse/db/people/metadata/...-m0.avro           <- manifest, snapshot 1
+/tmp/warehouse/db/people/metadata/...-m0.avro           <- manifest, snapshot 2
 /tmp/warehouse/db/people/data/00000-....parquet
-/tmp/warehouse/db/people/data/00000-....parquet
+/tmp/warehouse/db/people/data/0000N-....parquet         <- one or more per write
 ```
+
+(Corrected 2026-10-22 — an earlier version showed UUID-style metadata names and too few files.)
 
 Notice three layers: a `metadata.json` file per schema/snapshot change (the current table state),
 Avro manifest and manifest-list files (the index over data files), and Parquet files under `data/`
@@ -168,8 +176,9 @@ spark.sql("SELECT * FROM local.db.people.files").show(truncate=False)
 spark.sql("SELECT * FROM local.db.people.snapshots").show(truncate=False)
 ```
 
-**Expected output:** one row per data file in `.files` (two, from the SQL insert and the DataFrame
-append), and one row per snapshot in `.snapshots` (two: the `INSERT INTO` and the `append()`).
+**Expected output:** one row per data file in `.files` (at least two — the `createDataFrame` append can
+write one file per Spark partition, so you may see more), and one row per snapshot in `.snapshots`
+(two: the `INSERT INTO` and the `append()`).
 
 # Common Pitfalls
 
@@ -200,3 +209,4 @@ For the concepts behind the file layout you just inspected, see
 [2] [Spark DDL — CREATE TABLE](https://iceberg.apache.org/docs/latest/spark-ddl/)
 [3] [Spark Writes — Writing with SQL and DataFrames](https://iceberg.apache.org/docs/latest/spark-writes/)
 [4] [Spark Queries — Querying with SQL and DataFrames](https://iceberg.apache.org/docs/latest/spark-queries/)
+[5] [apache/iceberg — HadoopTableOperations.java (`v<N>.metadata.json`, `version-hint.text`)](https://github.com/apache/iceberg/blob/main/core/src/main/java/org/apache/iceberg/hadoop/HadoopTableOperations.java)

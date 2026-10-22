@@ -4,7 +4,7 @@ title: Read/Write Performance Tuning (Spark)
 description: Spark-side tuning knobs for Iceberg — vectorized reads, split/advisory partition sizing, fanout writers, worker parallelism, and shuffle-partitions interplay.
 aliases: [spark tuning, vectorized reads, split-size, advisory-partition-size, fanout writer, spark.sql.shuffle.partitions, iceberg spark performance]
 tags: [iceberg, performance, spark, tuning, reads, writes]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/spark-configuration/
 ---
 
@@ -59,7 +59,7 @@ scan-heavy workloads on Parquet.
 | `read.orc.vectorization.enabled` | table property | `false` | ORC vectorization (off by default) |
 | `read.parquet.vectorization.batch-size` / `read.orc.vectorization.batch-size` | table property | 5000 | Rows per vectorized batch |
 
-```java
+```scala
 // disabling vectorization at the session level
 val spark = SparkSession.builder()
   .config("spark.sql.iceberg.vectorization.enabled", "false")
@@ -152,17 +152,17 @@ for a complete high-volume profile see
 
 # Quick Reference: Read/Write Options
 
-```sql
--- read: override split sizing for one query
+```python
+# read: override split sizing for one query
 spark.read.option("split-size", "268435456").table("catalog.db.table")
 ```
 
-```sql
--- write: override target file size and enable fanout for one write
-df.writeTo("catalog.db.table")
+```python
+# write: override target file size and enable fanout for one write
+(df.writeTo("catalog.db.table")
   .option("target-file-size-bytes", "268435456")
   .option("fanout-enabled", "true")
-  .append()
+  .append())
 ```
 
 Full option tables (all read/write options, precedence rules) are on the

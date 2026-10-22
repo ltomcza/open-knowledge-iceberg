@@ -4,7 +4,7 @@ title: REST Catalog
 description: The vendor-neutral REST Catalog protocol — why it exists, its core concepts and endpoints, and its authentication options.
 aliases: [rest catalog, iceberg rest catalog, rest-catalog-spec, RESTCatalog, iceberg-rest-fixture, OpenAPI catalog]
 tags: [iceberg, catalog, rest, protocol, auth]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/rest-catalog-spec
 ---
 
@@ -74,9 +74,9 @@ REST-compliant catalog server can serve:
 - **Change-based commits** — table updates are submitted as a list of
   requirements + updates (not a full metadata overwrite), letting the server
   validate and apply them atomically and retry on conflict.
-- **Scan planning** — can happen client-side (`CLIENT`, the client reads
-  manifests itself) or server-side (`SCAN_PLANNING`/`SERVER`, the server
-  returns planned file lists), controlled by the `scan-planning-mode`
+- **Scan planning** — can happen client-side (`client`, the client reads
+  manifests itself) or server-side (`server`, the server returns planned
+  file lists), controlled by the `scan-planning-mode`
   catalog property and overridable per-table by the server response.
 - **Pagination** — listing operations (namespaces, tables) support
   page-size-controlled pagination via `rest-page-size`.
@@ -92,7 +92,13 @@ REST-compliant catalog server can serve:
 | `view-endpoints-supported` | `false` | Set `true` for backwards compatibility with older servers that support view endpoints but don't advertise them in `endpoints`. |
 | `rest-page-size` | null | Page size for listing namespaces, tables, or other paginated resources. |
 | `namespace-separator` | `%1F` | Separator character used for namespace levels when communicating with the server. |
-| `scan-planning-mode` | `CLIENT` | `CLIENT` (client-side planning) or `SERVER` (server-side planning); can be overridden per-table by the server's `LoadTableResponse`. |
+| `scan-planning-mode` | `client` | `client` (client-side planning) or `server` (server-side planning); can be overridden per-table by the server's `LoadTableResponse`. (Docs before 1.12 wrote these upper-case.) |
+| `rest-scan-planning.poll-timeout-ms` | `300000` (5 min) | Max wait when polling for async server-side scan-planning results. |
+| `rest-scan-planning.poll-num-retries` | `10` | Extra poll attempts after the first fetch of a submitted plan. |
+| `rest.client.max-retries` | `5` | Max retries of a failed HTTP request (exponential backoff). |
+| `rest.client.max-connections` / `rest.client.connections-per-route` | `100` / `100` | HTTP connection-pool sizing. |
+| `rest.client.connection-timeout-ms` / `rest.client.socket-timeout-ms` | null | HTTP client timeouts (library default if unset). |
+| `rest.client.proxy.*`, `rest.client.tls.configurer-impl`, `rest.client.user-agent` | null | Proxy, custom TLS (`TLSConfigurer`), and User-Agent settings. |
 
 ## Table cache properties
 
@@ -139,7 +145,14 @@ Set `rest.auth.type` to select a mechanism:
 
 SigV4 signs requests using AWS credentials (for a REST catalog fronted by AWS
 infrastructure) and can delegate to a secondary auth type afterward via
-`rest.auth.sigv4.delegate-auth-type`.
+`rest.auth.sigv4.delegate-auth-type`. SigV4 properties: `rest.signing-region`,
+`rest.signing-name` (default `execute-api`), optional static
+`rest.access-key-id` / `rest.secret-access-key` / `rest.session-token`, or
+`client.credentials-provider` / `client.assume-role.*`.
+
+As of Iceberg 1.12 the REST client configuration lives on its own docs page
+(`/docs/latest/rest-catalog/`) and the protocol concepts on
+`/docs/latest/rest-protocol/`.
 
 # Related concepts
 
@@ -153,3 +166,5 @@ infrastructure) and can delegate to a secondary auth type afterward via
 [1] [REST Catalog Spec](https://iceberg.apache.org/rest-catalog-spec)
 [2] [REST Catalog OpenAPI YAML](https://github.com/apache/iceberg/blob/main/open-api/rest-catalog-open-api.yaml)
 [3] [Catalog properties — REST catalog properties](https://iceberg.apache.org/docs/latest/catalog-properties)
+[4] [Apache Iceberg — REST Catalog (configuration, 1.12)](https://iceberg.apache.org/docs/latest/rest-catalog/)
+[5] [Apache Iceberg — REST Catalog Protocol](https://iceberg.apache.org/docs/latest/rest-protocol/)

@@ -4,7 +4,7 @@ title: Large-Scale MERGE / UPDATE Tuning (Spark)
 description: How to make MERGE INTO / UPDATE / DELETE fast on very large Iceberg tables (billions of rows, hundreds of millions of changes per day) — COW vs MOR choice, filter pushdown via the ON clause, bounded merges, storage-partitioned joins, join strategy, distribution modes, delete granularity, and v3 deletion vectors.
 aliases: [merge into performance, slow merge iceberg, upsert billions of rows, bulk update iceberg, merge-on-read at scale, iceberg merge tuning, update huge iceberg table, shuffle hash join merge]
 tags: [iceberg, performance, spark, merge-into, update, delete, mor, cow, spj, tuning]
-timestamp: 2026-10-21T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/spark-writes/
 ---
 
@@ -222,7 +222,7 @@ when unset):
 | Setting | Values | Notes |
 |---|---|---|
 | `write.delete.granularity` (table) / `delete-granularity` (Spark write option) | `file` / `partition` | `partition` packs deletes for many data files into one delete file: fewer files, but each reader also loads deletes that don't apply to its file. `file` writes one delete file per data file: targeted reads, more files, needs more aggressive delete compaction. Recent Spark writes default to `file` (check your Iceberg version's docs). Applies to position deletes only. |
-| `write.delete.maintain-during-write` / Spark conf `maintain-position-deletes` | default on | Spark merges a data file's existing position deletes into the new delete file it writes ("minor compaction" during the write). The data-to-delete-file mapping is broadcast to executors, which can raise memory use on tables with millions of files. |
+| Position-delete maintenance during writes (no config knob) | always on for file-scoped deletes (Iceberg 1.8+) | Spark merges a data file's existing file-scoped position deletes into the new delete file it writes ("minor compaction" during the write). The data-to-delete-file mapping is broadcast to executors, which can raise memory use on tables with millions of files. **Correction (2026-10-22):** earlier versions of this note named a table property `write.delete.maintain-during-write` and a Spark conf `maintain-position-deletes`. Those names appear only in the description of PR #11273; the merged code adds no such options (they are absent from `TableProperties`, `SparkSQLProperties`, `SparkWriteOptions`, and the docs), so setting them is a silent no-op. |
 | `format-version = 3` | — | Position deletes become **deletion vectors**: Roaring bitmaps in Puffin files, at most one per data file per snapshot, merged on every write. An AWS EMR benchmark (EMR 7.10, Spark 3.5.5) showed 55% faster deletes, about 74% smaller delete files, and 23–28% faster reads than v2 position deletes. Make sure *every* engine that reads the table supports v3 before upgrading. |
 | `spark.sql.iceberg.executor-cache.enabled` | `true` | Caches delete files on executors (max 64 MB per entry and 128 MB in total by default). Raise `executor-cache.max-total-size` when many tasks share the same delete files. |
 
@@ -282,3 +282,4 @@ regularly**. Read cost grows with every MOR commit that isn't compacted.
 [8] [Iceberg Javadoc — DeleteGranularity](https://iceberg.apache.org/javadoc/latest/org/apache/iceberg/deletes/DeleteGranularity.html)
 [9] [apache/iceberg PR #11273 — Merge new position deletes with old deletes during writing](https://github.com/apache/iceberg/pull/11273)
 [10] [AWS Big Data Blog — Unlock the power of Apache Iceberg v3 deletion vectors on Amazon EMR (2025)](https://aws.amazon.com/blogs/big-data/unlock-the-power-of-apache-iceberg-v3-deletion-vectors-on-amazon-emr/)
+[11] [apache/iceberg — TableProperties.java (no `maintain-during-write` property)](https://github.com/apache/iceberg/blob/main/core/src/main/java/org/apache/iceberg/TableProperties.java)

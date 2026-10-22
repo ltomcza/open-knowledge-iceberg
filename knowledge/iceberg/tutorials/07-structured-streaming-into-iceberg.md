@@ -4,7 +4,7 @@ title: 7. Structured Streaming into Iceberg
 description: Stream from Spark's built-in rate source into an Iceberg table, then read that table back as a second streaming query — no Kafka required.
 aliases: [iceberg structured streaming, iceberg writeStream, iceberg readStream, spark rate source iceberg]
 tags: [tutorial, pyspark, structured-streaming, intermediate]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 difficulty: intermediate
 ---
 
@@ -33,7 +33,7 @@ from pyspark.sql import SparkSession
 spark = (
     SparkSession.builder
     .appName("iceberg-tutorial")
-    .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.11.0")
+    .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.12.0")
     .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
     .config("spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog")
     .config("spark.sql.catalog.local.type", "hadoop")
@@ -91,8 +91,10 @@ spark.sql("SELECT COUNT(*) FROM local.db.ticks").show()
 spark.sql("SELECT COUNT(*) AS file_count FROM local.db.ticks.files").show()
 ```
 
-**Expected output:** roughly 15-20 rows (about 1 row/second for 20 seconds), and a file count close
-to the number of micro-batches that committed (roughly 4, at one file per 5-second trigger) — each
+**Expected output:** roughly 15-20 rows (about 1 row/second for 20 seconds), and a file count of
+roughly 15-20 as well — the `rate` source spreads each micro-batch across `numPartitions` (default:
+Spark's default parallelism, i.e. your local cores), so each 5-row batch can write up to 5 tiny files.
+Add `.option("numPartitions", 1)` to the `rate` source to get about one file per micro-batch. Each
 micro-batch commit is its own small append, the same pattern you manually simulated in
 [6. Compaction and Maintenance](/tutorials/06-compaction-and-maintenance.md).
 
@@ -147,8 +149,10 @@ delete snapshots raise an exception unless you set `streaming-skip-overwrite-sna
   stream can still produce thousands of tiny files a day. The Iceberg project recommends a trigger
   interval of at least 1 minute in production and regular compaction — see
   [6. Compaction and Maintenance](/tutorials/06-compaction-and-maintenance.md).
-- **Forgetting the table must already exist.** Unlike some sinks, Iceberg's streaming writer does
-  not create the target table for you — `CREATE TABLE ... USING iceberg` first, as in step 1.
+- **Not creating the table up front.** Spark's `toTable(...)` will create a missing table from the
+  stream's schema, but with no partitioning or table properties; the Iceberg docs recommend creating
+  the table first (`CREATE TABLE ... USING iceberg`, as in step 1) so you control its layout. The
+  path-based `.start()` form does not create anything.
 - **Using `Trigger.Once` for rate limiting.** The deprecated one-shot trigger ignores Iceberg's
   micro-batch size limiting options (`streaming-max-files-per-micro-batch`,
   `streaming-max-rows-per-micro-batch`); use `Trigger.AvailableNow` instead if you want to drain all
@@ -168,3 +172,4 @@ and [/pyspark/structured-streaming.md](/pyspark/structured-streaming.md).
 
 [1] [Spark Structured Streaming — Streaming Reads and Writes](https://iceberg.apache.org/docs/latest/spark-structured-streaming/)
 [2] [Spark Structured Streaming — Maintenance for streaming tables](https://iceberg.apache.org/docs/latest/spark-structured-streaming/)
+[3] [Spark Structured Streaming Programming Guide — Rate source (`numPartitions`) and `toTable`](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html)

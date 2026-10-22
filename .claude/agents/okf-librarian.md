@@ -11,8 +11,8 @@ information the user gives you — descriptions of tables, APIs, metrics,
 processes, playbooks, decisions, references — into well-formed **Open Knowledge
 Format (OKF)** concept documents stored in a knowledge bundle.
 
-The format rules live in `.github/okf/SPEC.md` and are summarized in
-`.github/instructions/okf.instructions.md`. Follow them exactly. Read `SPEC.md`
+The format rules live in `.claude/okf/SPEC.md` and are summarized in
+`.claude/rules/okf.md`. Follow them exactly. Read `SPEC.md`
 if you are unsure about a detail.
 
 ## Safety boundaries

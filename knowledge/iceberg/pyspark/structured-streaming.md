@@ -4,7 +4,7 @@ title: Structured Streaming Reads and Writes on Iceberg Tables
 description: readStream/writeStream options for Iceberg with PySpark Structured Streaming — incremental reads, micro-batch rate limiting, append/complete output modes, fanout writer, and why streaming tables need regular maintenance.
 aliases: [iceberg readStream, iceberg writeStream, structured streaming iceberg pyspark, stream-from-timestamp, streaming-max-files-per-micro-batch, fanout-enabled streaming, iceberg checkpointLocation, streaming small files iceberg]
 tags: [iceberg, pyspark, spark, structured-streaming, streaming, maintenance]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/spark-structured-streaming
 ---
 
@@ -184,7 +184,7 @@ attention than batch-written ones.
 | High commit rate | Each micro-batch commit adds data files, manifests, and a snapshot — more of all three means more to maintain | Keep the streaming trigger interval at **1 minute minimum**; increase if maintenance load is too high |
 | Snapshot accumulation | Every batch = a new snapshot retained until expired | Run `expire_snapshots` regularly (default: expires snapshots older than 5 days) — see `/pyspark/spark-procedures.md` |
 | Small data files | Streaming batches are typically small, producing many small files and bloating metadata | Run `rewrite_data_files` regularly to compact — see `/maintenance/compaction-and-file-sizing.md` and `/pyspark/spark-procedures.md` |
-| Small manifest files | Streaming uses "fast" appends that skip automatic manifest compaction, causing many small manifests | Run `rewrite_manifests` regularly — see `/pyspark/spark-procedures.md` |
+| Small manifest files | Streaming uses "fast" appends that skip automatic manifest compaction, causing many small manifests | Run `rewrite_manifests` regularly — see `/pyspark/spark-procedures.md` — or, since Iceberg 1.12, set the write option `use-merge-append-for-streaming=true` so manifests are merged on commit |
 
 # Citations
 

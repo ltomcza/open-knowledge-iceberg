@@ -4,7 +4,7 @@ title: Setup and Configuration for Iceberg with PySpark
 description: Adding the iceberg-spark-runtime package, configuring spark.sql.catalog.* properties, SQL extensions, and catalog-type selection for a PySpark SparkSession.
 aliases: [iceberg pyspark setup, spark.sql.catalog, iceberg-spark-runtime, spark.sql.extensions, pyspark --packages iceberg, configure iceberg catalog spark, IcebergSparkSessionExtensions]
 tags: [iceberg, pyspark, spark, setup, configuration, catalog]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/spark-configuration
 ---
 
@@ -23,7 +23,7 @@ and `/pyspark/writing-data.md`.
 - Add the Iceberg Spark runtime via `--packages
   org.apache.iceberg:iceberg-spark-runtime-<spark-version>_<scala-version>:<iceberg-version>`
   at launch (spark-shell/pyspark/spark-submit), or drop the jar into Spark's
-  `jars/` folder. Current example: `iceberg-spark-runtime-4.1_2.13:1.11.0`.
+  `jars/` folder. Current example: `iceberg-spark-runtime-4.1_2.13:1.12.0`.
 - Every Iceberg catalog is declared with Spark properties under
   `spark.sql.catalog.<catalog-name>`, set to
   `org.apache.iceberg.spark.SparkCatalog` (Iceberg-only catalog) or
@@ -53,7 +53,7 @@ from pyspark.sql import SparkSession
 spark = (
     SparkSession.builder
     .appName("IcebergExample")
-    .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.11.0")
+    .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.12.0")
     .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
     # Iceberg-only catalog named "local", backed by a Hadoop (path-based) warehouse
     .config("spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog")
@@ -67,7 +67,7 @@ Equivalent at launch time (spark-shell / spark-sql / pyspark CLI, or
 spark-submit):
 
 ```bash
-pyspark --packages org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.11.0 \
+pyspark --packages org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.12.0 \
     --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions \
     --conf spark.sql.catalog.local=org.apache.iceberg.spark.SparkCatalog \
     --conf spark.sql.catalog.local.type=hadoop \

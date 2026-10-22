@@ -4,7 +4,7 @@ title: PyIceberg — Reading Tables
 description: Loading tables and scanning data with PyIceberg — row/column filters, limits, conversion to pandas/Arrow/DuckDB/Ray/Daft/Polars/Bodo, and time-travel reads.
 aliases: [pyiceberg scan, table.scan, pyiceberg to_pandas, pyiceberg to_arrow, pyiceberg to_duckdb, pyiceberg time travel, load_table]
 tags: [pyiceberg, python, reading, scan, time-travel, pandas, arrow, duckdb]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://py.iceberg.apache.org/api
 ---
 
@@ -217,7 +217,7 @@ ctx.register_table("test", iceberg_table)
 ctx.table("test").show()
 ```
 
-Caveats: works only with `datafusion == 51` (matching `pyiceberg-core`), depends
+Caveats: works only with `datafusion == 53` (PyIceberg 0.12 docs; the pin moves with `pyiceberg-core`) (matching `pyiceberg-core`), depends
 directly on `iceberg-rust` rather than PyIceberg's own implementation, and has
 fewer features than the full PyIceberg API.
 

@@ -4,7 +4,7 @@ title: Full-Partition Rewrite and Conflict-Safe Overwrite (Spark)
 description: How to correct columns for every row of a large partition (hundreds of millions of rows) by replacing the partition instead of row-level UPDATE/MERGE, and how to make that overwrite fail safely when concurrent writers changed the partition — isolation-level and validate-from-snapshot-id write options, the overwrite APIs and their gotchas, verification, retries, and WAP staging.
 aliases: [rewrite whole partition, backfill correction, recompute day partition, overwritePartitions isolation, validate-from-snapshot-id, INSERT INTO REPLACE WHERE iceberg, safe insert overwrite, check data changed before overwrite, update all rows in partition, historical correction iceberg]
 tags: [iceberg, performance, spark, overwrite, backfill, concurrency, isolation, correction, wap]
-timestamp: 2026-10-21T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/spark-configuration/#write-options
 ---
 
@@ -240,9 +240,14 @@ Publish with either of:
 - `CALL catalog.system.cherrypick_snapshot('db.fact_table', <branch snapshot id>)`.
   It re-applies the branch's dynamic-overwrite snapshot on top of the
   current `main`. Only append and dynamic-overwrite snapshots can be
-  cherry-picked. Re-check the partition afterwards, because rows appended
-  to `main` after the branch point are replaced by the cherry-picked
-  partition contents.
+  cherry-picked. If any data file was added to one of the replaced
+  partitions on `main` since the branch point, the cherry-pick **fails**
+  with `ValidationException: Cannot cherry-pick replace partitions with
+  changed partition` (`CherryPickOperation.validateReplacedPartitions`)
+  instead of overwriting those rows — rebuild the partition from the
+  newer `main` and retry. **Correction (2026-10-22):** an earlier version
+  said late appends would be silently replaced; the source shows the
+  publish is validated.
 
 See [/architecture/branching-and-tagging.md](/architecture/branching-and-tagging.md).
 
@@ -302,3 +307,4 @@ the result.
 [11] [Soumil Shah — Loading 14 billion rows into S3 Tables using INSERT OVERWRITE (distribution-mode none) (2025)](https://medium.com/@shahsoumil519/loading-6-7tb-14billion-rows-into-s3-tables-using-insert-overwrite-e95fc1d20b1b)
 [12] [Apache Iceberg — Branching and Tagging (audit branch, fast_forward)](https://iceberg.apache.org/docs/latest/branching/)
 [13] [gians14/iceberg-wap-incremental-pipeline — WAP reprocessing of corrupted days](https://github.com/gians14/iceberg-wap-incremental-pipeline)
+[14] [apache/iceberg — CherryPickOperation.java (`validateReplacedPartitions`)](https://github.com/apache/iceberg/blob/main/core/src/main/java/org/apache/iceberg/CherryPickOperation.java)

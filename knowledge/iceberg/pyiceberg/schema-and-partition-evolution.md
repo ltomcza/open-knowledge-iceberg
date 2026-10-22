@@ -4,7 +4,7 @@ title: PyIceberg — Schema and Partition Evolution
 description: Evolving table schema (add/rename/move/update/delete columns, union-by-name) and partition spec (add/remove/rename fields) and sort order through the PyIceberg transaction API.
 aliases: [pyiceberg update_schema, pyiceberg update_spec, pyiceberg add_column, pyiceberg union_by_name, pyiceberg partition evolution, pyiceberg rename_column, update_sort_order]
 tags: [pyiceberg, python, schema-evolution, partition-evolution, transaction]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://py.iceberg.apache.org/api
 ---
 
@@ -23,8 +23,11 @@ Iceberg concept of safe/unsafe schema changes, see
   assigns field IDs for you, and by default only allows non-breaking changes.
 - `update.union_by_name(other_schema)` merges another schema in, matching by
   field name rather than ID — the easiest way to add several new columns at once.
-- Breaking changes (e.g. deleting a column, making an optional field required)
-  require `table.update_schema(allow_incompatible_changes=True)`.
+- Incompatible changes such as making an optional field required need
+  `table.update_schema(allow_incompatible_changes=True)`. The docs show the
+  flag on `delete_column` too, but in PyIceberg 0.12 `delete_column` does not
+  check it (verified by running it) — deleting still breaks readers that
+  expect the field, so treat it as a breaking change regardless.
 - Partition spec changes go through `with table.update_spec() as update: ...`,
   using `add_field`, `remove_field`, `rename_field`, or the `identity(...)`
   shortcut.
@@ -132,7 +135,9 @@ with table.update_schema(allow_incompatible_changes=True) as update:
 
 ## Delete Column
 
-Always an incompatible change (existing readers/writers may expect the field):
+An incompatible change (existing readers/writers may expect the field). The docs
+wrap it in `allow_incompatible_changes=True`; PyIceberg 0.12 accepts it without the
+flag, but keeping the flag documents intent:
 
 ```python
 with table.update_schema(allow_incompatible_changes=True) as update:
@@ -202,3 +207,4 @@ constant describing where nulls sort.
 # Citations
 
 [1] [PyIceberg — Python API](https://py.iceberg.apache.org/api)
+[2] [apache/iceberg-python — `UpdateSchema.delete_column`](https://github.com/apache/iceberg-python/blob/main/pyiceberg/table/update/schema.py)

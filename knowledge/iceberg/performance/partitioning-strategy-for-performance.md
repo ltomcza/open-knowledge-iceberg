@@ -4,7 +4,7 @@ title: Partitioning Strategy for Performance
 description: Choosing partition granularity, avoiding over- and under-partitioning, and using partition evolution to fix a bad initial choice without rewriting data.
 aliases: [partition granularity, over-partitioning, under-partitioning, partition evolution, hidden partitioning, choosing partitions]
 tags: [iceberg, performance, partitioning, partition-evolution]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/performance/
 ---
 
@@ -63,7 +63,8 @@ Rules of thumb:
 - Size granularity against **write volume per partition per commit
   interval**. If daily volume per partition is small, a daily partition
   transform will generate small files every day; consider a coarser
-  transform (`month`, `week`) or rely more on
+  transform (`month`; Iceberg has no `week` transform — the time
+  transforms are `year`, `month`, `day`, `hour`) or rely more on
   [compaction](/maintenance/compaction-and-file-sizing.md) instead of
   chasing granularity.
 - Avoid partitioning on high-cardinality columns directly (e.g. raw
@@ -132,3 +133,4 @@ for the `ALTER TABLE ... ADD/DROP PARTITION FIELD` syntax.
 # Citations
 
 [1] [Apache Iceberg — Performance](https://iceberg.apache.org/docs/latest/performance/)
+[2] [Apache Iceberg Table Spec — Partition Transforms](https://iceberg.apache.org/spec/#partition-transforms)

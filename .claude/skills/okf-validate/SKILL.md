@@ -1,4 +1,5 @@
 ---
+name: okf-validate
 description: Check an OKF bundle for conformance with the v0.1 specification and report errors/warnings/info.
 argument-hint: [bundle path (optional — blank validates all bundles found)]
 allowed-tools: Read, Grep, Glob
@@ -9,7 +10,8 @@ allowed-tools: Read, Grep, Glob
 Check the OKF bundle for conformance with **OKF v0.1** and report findings. Do
 not modify files unless the user asks; this is a read-and-report pass.
 
-$ARGUMENTS
+Input: the bundle path (blank means every bundle found), given after the slash command (Claude Code
+also appends it below as `ARGUMENTS:`). If required input is missing, ask for it.
 
 Safety boundaries:
 
@@ -23,7 +25,7 @@ Safety boundaries:
 Before checking conformance, enumerate every `.md` file recursively in scope.
 Do not rely only on search hits or existing index listings.
 
-Conformance rules (`.github/okf/SPEC.md` §9). A bundle is conformant if:
+Conformance rules (`.claude/okf/SPEC.md` §9). A bundle is conformant if:
 
 1. Every non-reserved `.md` file has a **parseable YAML frontmatter block**
    (opening `---` on line 1, closing `---`).

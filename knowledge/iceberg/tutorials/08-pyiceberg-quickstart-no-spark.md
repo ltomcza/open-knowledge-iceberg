@@ -4,13 +4,13 @@ title: 8. PyIceberg Quickstart (No Spark)
 description: Create, write, and read an Iceberg table using pure Python PyIceberg and a local SQLite catalog -- no JVM or SparkSession involved.
 aliases: [pyiceberg tutorial, pyiceberg quickstart, iceberg without spark, pyiceberg sql catalog sqlite]
 tags: [tutorial, pyiceberg, python, no-spark, beginner]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 difficulty: beginner
 ---
 
 # Prerequisites
 
-- Python 3.9+ and pip. **No Java, no Spark, no JVM required for this tutorial** — that's the point.
+- Python 3.10+ and pip (PyIceberg 0.12 requires Python >= 3.10). **No Java, no Spark, no JVM required for this tutorial** — that's the point.
 - Conceptually helpful (but not required) to have done
   [2. Your First Table: Create, Insert, Read](/tutorials/02-first-table-crud.md) first, since this
   tutorial repeats the same "create table, write, read" journey using a completely different tool.
@@ -111,7 +111,7 @@ table.append(data)
 ```
 
 **Expected output:** no errors. This wrote a new Parquet data file under
-`/tmp/warehouse_pyiceberg/default.db/cities/data/` and committed a new snapshot — the same kind of
+`/tmp/warehouse_pyiceberg/default/cities/data/` (the SQL catalog uses `<warehouse>/<namespace>/<table>`; only the Glue, Hive, and DynamoDB catalogs add a Hive-style `.db` suffix) and committed a new snapshot — the same kind of
 snapshot you inspected via Spark's `.snapshots` metadata table in earlier tutorials, just written by
 a pure-Python client this time.
 
@@ -181,17 +181,19 @@ matching the data you just wrote.
 - **Using `SqlCatalog`/SQLite in a multi-process or production setting.** It's explicitly for local
   development — SQLite doesn't handle concurrent writers safely. Use a REST, Hive, Glue, or JDBC
   (Postgres-backed) catalog for anything shared or production-facing.
-- **Expecting `.append()` to compact automatically.** Like Spark, PyIceberg defaults to fast append,
-  which favors quick commits over fewer files — repeated small `.append()` calls will accumulate
-  small files here too, the same lesson as
-  [6. Compaction and Maintenance](/tutorials/06-compaction-and-maintenance.md).
+- **Expecting `.append()` to compact automatically.** Each `.append()` writes new data files and a new
+  snapshot, so repeated small appends accumulate small files here just as in Spark — and PyIceberg has
+  no compaction, so use Spark's `rewrite_data_files` (the same lesson as
+  [6. Compaction and Maintenance](/tutorials/06-compaction-and-maintenance.md)). Unlike Java/Spark,
+  PyIceberg also defaults to *fast* append (`commit.manifest-merge.enabled=False`), so manifests pile up
+  too.
 - **Mixing up `table.append()` and `table.overwrite()`.** On an empty table they produce the same
   result, but `overwrite()` replaces existing data matching an optional filter — it is not simply
   "insert more rows."
 
 # Next Steps
 
-This is the last tutorial in the series. For deeper PyIceberg material — the full catalog matrix,
+Continue to [9. Iceberg Through Spark Connect](/tutorials/09-spark-connect.md) for the last tutorial in the series. For deeper PyIceberg material — the full catalog matrix,
 schema/partition evolution, upsert, and REST/Glue/Hive catalog configuration — see
 [/pyiceberg/overview-and-installation.md](/pyiceberg/overview-and-installation.md).
 
@@ -206,3 +208,4 @@ PyIceberg alone doesn't provide.
 [1] [Getting Started with PyIceberg](https://py.iceberg.apache.org/)
 [2] [PyIceberg Python API — Create, write, upsert, and inspect tables](https://py.iceberg.apache.org/api/)
 [3] [PyIceberg Configuration — Catalogs (SQL, REST, Hive, Glue, DynamoDB)](https://py.iceberg.apache.org/configuration/)
+[4] [PyPI — pyiceberg 0.12.0 (requires Python >= 3.10)](https://pypi.org/project/pyiceberg/)

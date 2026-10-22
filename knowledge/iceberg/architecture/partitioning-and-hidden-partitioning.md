@@ -4,7 +4,7 @@ title: Partitioning and Hidden Partitioning
 description: Iceberg's hidden partitioning model, partition spec structure, and how partition layouts can evolve without rewriting existing data.
 aliases: [hidden partitioning, partition spec, partition evolution, iceberg vs hive partitioning, split planning]
 tags: [iceberg, architecture, partitioning, hidden-partitioning, evolution]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/partitioning
 ---
 
@@ -105,7 +105,7 @@ CREATE TABLE logs (level string, message string, event_time timestamp)
 USING iceberg
 PARTITIONED BY (day(event_time));
 
--- Evolve: add level as a coarse bucket partition, no rewrite of existing data
+-- Evolve: add level as an identity partition field, no rewrite of existing data
 ALTER TABLE logs ADD PARTITION FIELD level;
 ```
 

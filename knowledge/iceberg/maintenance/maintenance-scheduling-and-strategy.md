@@ -4,7 +4,7 @@ title: Maintenance Scheduling and Strategy
 description: Synthesis of recommended cadence, ordering, and automation approaches for running Iceberg maintenance operations in production.
 aliases: [maintenance pipeline, maintenance schedule, table maintenance strategy, operational cadence, automated compaction]
 tags: [iceberg, maintenance, operations, scheduling, synthesis]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 ---
 
 # Retrieval Notes
@@ -29,9 +29,12 @@ prescriptive.
 - Cadence should scale with **commit frequency**, not table size: streaming
   / high-commit-rate tables need much more frequent compaction and manifest
   maintenance than daily-batch tables.
-- Snapshot expiration and orphan-file removal are cheap, low-risk, and
-  should run on a steady schedule (e.g. daily) regardless of write pattern,
-  since they mainly bound storage/metadata growth.
+- Snapshot expiration is cheap and should run on a steady schedule (e.g.
+  daily) regardless of write pattern, since it bounds storage/metadata
+  growth. Orphan-file removal is a less frequent sweep (weekly is usually
+  enough): it needs a full storage listing, which is expensive on huge
+  tables, and an unsafe `older_than` window can delete in-flight files —
+  see [/maintenance/remove-orphan-files.md](/maintenance/remove-orphan-files.md).
 - Compaction is the most resource-intensive operation and the one most
   worth tuning (scoping via `where`, partial-progress) rather than
   running blindly and repeatedly over the whole table.
@@ -86,8 +89,9 @@ Notes on the table above:
   tightest compaction loop; but expensive full-table compaction runs should
   still be scoped (`where` clause, or partition-aware scheduling) rather
   than reprocessing the whole table every cycle.
-- Snapshot expiration and orphan removal have low marginal cost and low
-  risk, so erring toward "run them on a steady daily/weekly schedule" is
+- Snapshot expiration has low marginal cost and risk, and orphan removal is
+  safe with the default 3-day window, so erring toward "run them on a steady
+  daily/weekly schedule" is
   reasonable even if you're unsure of the ideal cadence — the main cost of
   running them too often is wasted job time, not correctness risk (subject
   to the retention-window safety notes in

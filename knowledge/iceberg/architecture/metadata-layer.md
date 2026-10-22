@@ -4,7 +4,7 @@ title: Iceberg Metadata Layer — metadata.json
 description: Deep dive on the structure of an Iceberg table metadata file (metadata.json) — fields, format-version differences (v1/v2/v3), schemas, partition specs, sort orders, snapshot-log, and metadata-log.
 aliases: [metadata.json, table metadata, format version, format-version, iceberg v1 v2 v3, table-uuid, snapshot-log, metadata-log]
 tags: [iceberg, architecture, metadata, format-version, spec]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/spec
 ---
 
@@ -44,7 +44,7 @@ For partition-spec and sort-order internals, see
 | v1 | Adopted | Analytic tables over immutable Parquet/Avro/ORC files. |
 | v2 | Adopted | Row-level deletes via delete files (position + equality deletes); stricter writer requirements; `sequence-number` on snapshots and manifests. |
 | v3 | Adopted | New types (`timestamp_ns`/`timestamptz_ns`, `unknown`, `variant`, `geometry`, `geography`); column default values; multi-argument transforms for partitioning/sorting; row lineage tracking; binary deletion vectors (replacing position delete files); table encryption keys. |
-| v4 | Under active development, not formally adopted | Restructured metadata for performance; relative (not just fully-qualified) file locations. |
+| v4 | Under active development, not formally adopted | Adaptive metadata tree: a single root manifest per snapshot replaces the manifest list; data files and their deletion vectors stored in one combined entry (no two-phase planning); relative file locations; writing new equality deletes no longer allowed; new `file` type. (Updated 2026-10-22 from the current spec.) |
 
 All v1 data/metadata remain valid after upgrading a table to v2 — appendix E
 of the spec documents how v2 fields default when reading v1 metadata.
@@ -122,3 +122,4 @@ old metadata.json location and reconstruct exactly that point-in-time state.
 # Citations
 
 [1] [Apache Iceberg Table Spec — Table Metadata](https://iceberg.apache.org/spec)
+[2] [Apache Iceberg Table Spec — Format Versioning (Version 4)](https://iceberg.apache.org/spec/#version-4-metadata-structure-and-representation)

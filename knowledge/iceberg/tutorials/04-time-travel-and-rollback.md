@@ -4,7 +4,7 @@ title: 4. Time Travel and Rollback
 description: Make a sequence of changes to a table, list its snapshot history, query an earlier state with VERSION AS OF and TIMESTAMP AS OF, and roll back with a stored procedure.
 aliases: [iceberg time travel, iceberg version as of, iceberg rollback_to_snapshot, iceberg snapshot history]
 tags: [tutorial, pyspark, time-travel, snapshots, rollback, intermediate]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 difficulty: intermediate
 ---
 
@@ -33,7 +33,7 @@ from pyspark.sql import SparkSession
 spark = (
     SparkSession.builder
     .appName("iceberg-tutorial")
-    .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.11.0")
+    .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.12.0")
     .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
     .config("spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog")
     .config("spark.sql.catalog.local.type", "hadoop")

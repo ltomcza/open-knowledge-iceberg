@@ -4,7 +4,7 @@ title: PyIceberg — CLI Reference
 description: The pyiceberg command-line tool — listing namespaces/tables, describing tables, inspecting schema, and getting/setting properties, including JSON output for automation.
 aliases: [pyiceberg cli, pyiceberg command line, pyiceberg describe, pyiceberg list, pyiceberg properties, pyiceberg schema command]
 tags: [pyiceberg, python, cli, command-line]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://py.iceberg.apache.org/cli
 ---
 
@@ -44,6 +44,7 @@ Options:
   --ugi TEXT
   --uri TEXT
   --credential TEXT
+  --warehouse TEXT
   --help                Show this message and exit.
 
 Commands:

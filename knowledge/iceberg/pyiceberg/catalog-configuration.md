@@ -4,7 +4,7 @@ title: PyIceberg — Catalog Configuration
 description: Configuring PyIceberg catalogs via .pyiceberg.yaml, environment variables, or inline load_catalog() dicts, covering REST, Glue, Hive, SQL, DynamoDB, and in-memory catalogs.
 aliases: [pyiceberg catalog config, .pyiceberg.yaml, load_catalog, pyiceberg rest catalog, pyiceberg glue catalog, PYICEBERG_HOME, pyiceberg environment variables]
 tags: [pyiceberg, python, catalog, configuration, rest-catalog, glue, hive]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://py.iceberg.apache.org/configuration
 ---
 
@@ -19,15 +19,22 @@ Iceberg catalog concepts (protocol, semantics), see
 
 # Summary
 
-- Three ways to configure PyIceberg, in order of precedence when both a file and
-  env vars exist: `.pyiceberg.yaml` file (recommended), environment variables
-  (`PYICEBERG_...`), or passing a config dict directly into `load_catalog(...)`.
+- Three ways to configure PyIceberg: a `.pyiceberg.yaml` file (recommended),
+  environment variables (`PYICEBERG_...`), or properties passed directly to
+  `load_catalog(...)`. When several are set, **`load_catalog(**props)` wins over
+  environment variables, which win over `.pyiceberg.yaml`** (the source merges
+  env vars over the file in `Config.__init__`, then kwargs over both in
+  `load_catalog`). Corrected 2026-10-22 — an earlier version implied the file
+  took precedence.
 - `.pyiceberg.yaml` is searched in `$PYICEBERG_HOME`, then the home directory,
   then the current working directory, in that order.
 - Environment variables use double underscore `__` for YAML nesting and single
   underscore `_` converts to dash `-`, e.g. `PYICEBERG_CATALOG__DEFAULT__S3__ACCESS_KEY_ID` sets `s3.access-key-id` on the `default` catalog.
-- Natively supported catalog `type` values: `rest` (default), `sql`, `hive`,
-  `glue`, `dynamodb`; `in-memory` is a `SqlCatalog` variant backed by in-memory
+- Natively supported catalog `type` values: `rest`, `sql`, `hive`, `glue`,
+  `dynamodb`, `bigquery`. If `type` is omitted, PyIceberg infers it from the
+  `uri` scheme (`http(s)` → `rest`, `thrift` → `hive`, `sqlite`/`postgresql`
+  → `sql`) and raises an error otherwise — the docs' "defaults to `rest`" only
+  holds for HTTP URIs; `in-memory` is a `SqlCatalog` variant backed by in-memory
   SQLite. Any other implementation can be loaded via `py-catalog-impl`.
 - REST catalogs support pluggable `auth` blocks (`noop`, `basic`, `oauth2`,
   `custom`, `google`, `entra`) as the modern replacement for legacy OAuth2 fields
@@ -84,7 +91,7 @@ load_catalog(name="rest")
 
 | `type` | Notes |
 |---|---|
-| `rest` | Default. Iceberg REST protocol. Most cloud-managed catalogs (Glue REST, Unity Catalog, Polaris, Lakekeeper, R2, BigLake, OneLake) speak REST. |
+| `rest` | Inferred for `http(s)://` URIs. Iceberg REST protocol. Most cloud-managed catalogs (Glue REST, Unity Catalog, Polaris, Lakekeeper, R2, BigLake, OneLake) speak REST. |
 | `sql` | PostgreSQL or SQLite backend via SQLAlchemy. |
 | `hive` | Thrift Hive metastore. |
 | `glue` | AWS Glue Data Catalog (native, non-REST client). |
@@ -392,6 +399,12 @@ supplied via `write.py-location-provider.impl: mymodule.MyLocationProvider`
 
 # Other Settings
 
+- **Manifest cache**: `manifest-cache-size` (default `128` manifests, LRU; `0` disables) or
+  `PYICEBERG_MANIFEST_CACHE_SIZE`.
+- **Commit retries** (table properties): `commit.retry.num-retries` (4), `min-wait-ms` (100),
+  `max-wait-ms` (60000), `total-timeout-ms` (1800000).
+- **Isolation** (table properties): `write.delete.isolation-level` / `write.update.isolation-level`,
+  default `serializable` — concurrent appends to affected partitions raise `ValidationException`.
 - **Concurrency**: `max-workers` in config, or `PYICEBERG_MAX_WORKERS` env var,
   controls the thread pool size for parallel operations.
 - **Legacy Java compatibility**: set `legacy-current-snapshot-id: True` (or
@@ -405,3 +418,4 @@ supplied via `write.py-location-provider.impl: mymodule.MyLocationProvider`
 # Citations
 
 [1] [PyIceberg — Configuration](https://py.iceberg.apache.org/configuration)
+[2] [apache/iceberg-python — `pyiceberg/utils/config.py` (`Config.__init__`) and `pyiceberg/catalog/__init__.py` (`load_catalog`, `infer_catalog_type`)](https://github.com/apache/iceberg-python/blob/main/pyiceberg/catalog/__init__.py)

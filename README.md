@@ -1,62 +1,36 @@
-# OKF agents & skills for GitHub Copilot (VS Code)
+# OKF agents & skills for Claude Code and GitHub Copilot
 
-This folder contains GitHub Copilot customizations that let you **store** and
-**query** knowledge in the [Open Knowledge Format](okf/SPEC.md) directly from
-Copilot Chat in Visual Studio Code.
+This repository ships one set of customizations that let you **store** and
+**query** knowledge in the [Open Knowledge Format](.claude/okf/SPEC.md). Both
+**Claude Code** and **GitHub Copilot Chat in VS Code** load the same files, so
+there is nothing to keep in sync between toolchains.
 
-## Contents
+## Layout
 
 ```
-.github/
-├── copilot-instructions.md              # Repo-wide OKF awareness + pointers
-├── agents/                              # "Agents" — custom Copilot agents
-│   ├── okf-librarian.agent.md           #   store / author knowledge
-│   └── okf-researcher.agent.md          #   query / retrieve knowledge (read-only)
-├── prompts/                             # "Skills" — slash commands
-│   ├── okf-add-concept.prompt.md        #   /okf-add-concept
-│   ├── okf-query.prompt.md              #   /okf-query
-│   ├── okf-index.prompt.md              #   /okf-index
-│   ├── okf-log.prompt.md                #   /okf-log
-│   └── okf-validate.prompt.md           #   /okf-validate
-├── instructions/
-│   └── okf.instructions.md              # OKF authoring rules (auto-applied to bundle files)
+README.md                         # This file
+AGENTS.md                         # Project instructions (all agents)
+CLAUDE.md                         # "@AGENTS.md" — imports AGENTS.md for Claude Code
+.claude/
+├── agents/                       # Agents (Claude subagent format)
+│   ├── okf-librarian.md          #   store / author knowledge
+│   └── okf-researcher.md         #   query / retrieve knowledge (read-only)
+├── skills/                       # Skills (Agent Skills standard, SKILL.md)
+│   ├── okf-add-concept/SKILL.md  #   /okf-add-concept
+│   ├── okf-query/SKILL.md        #   /okf-query
+│   ├── okf-index/SKILL.md        #   /okf-index
+│   ├── okf-log/SKILL.md          #   /okf-log
+│   └── okf-validate/SKILL.md     #   /okf-validate
+├── rules/
+│   └── okf.md                    # OKF authoring rules, auto-applied to bundle files
 └── okf/
-    └── SPEC.md                          # Canonical Open Knowledge Format specification
+    └── SPEC.md                   # Canonical Open Knowledge Format specification
 ```
 
-## Requirements
+## Skills
 
-- Visual Studio Code with the **GitHub Copilot** and **GitHub Copilot Chat**
-  extensions.
-- Prompt files and custom agents enabled. If you don't see them, set in
-  VS Code settings:
-  - `chat.promptFiles: true`
-  - Agents are read from `.github/agents/` by default.
-
-VS Code discovers these files automatically because they live under `.github/`.
-No other setup is needed for this workspace.
-
-## Safety defaults
-
-- Use least-privilege tool lists in agents and prompts.
-- Keep query and retrieval flows workspace-grounded with search tools only.
-- Enable edit tools only for authoring flows that must modify files.
-- Avoid terminal and web tools unless a workflow explicitly requires them.
-
-## Using the agents
-
-1. Open the Copilot Chat view.
-2. Use the **agent dropdown** (top of the chat input) and pick:
-   - **OKF Librarian** — then describe knowledge to capture ("Here's the schema
-     for our `orders` table…"). It writes a conformant concept document, updates
-     the directory `index.md`, and logs the change.
-   - **OKF Researcher** — then ask a question ("Which table has customer
-     lifetime value?"). It searches the bundle, follows cross-links, and answers
-     with citations. It never edits files.
-
-## Using the skills (prompt files)
-
-Type the slash command in Copilot Chat. Some prompt you for input:
+Type the slash command in Claude Code or in Copilot Chat, optionally followed
+by your input (e.g. `/okf-query how do I expire snapshots?`):
 
 | Command             | What it does                                             |
 |---------------------|----------------------------------------------------------|
@@ -66,19 +40,46 @@ Type the slash command in Copilot Chat. Some prompt you for input:
 | `/okf-log`          | Append a dated entry to a `log.md`.                      |
 | `/okf-validate`     | Check a bundle for OKF v0.1 conformance and report.      |
 
-## How they stay grounded
+## Agents
 
-- All files reference the canonical spec, [`.github/okf/SPEC.md`](okf/SPEC.md).
-- `instructions/okf.instructions.md` carries an `applyTo` glob
-  (`**/bundles/**`, `**/catalog/**`, `**/knowledge/**`) so its rules are injected
-  automatically whenever you edit a bundle markdown file. Adjust that glob if your
-  bundles live elsewhere.
+- **okf-librarian** — describe knowledge to capture ("Here's the schema for our
+  `orders` table…"). It writes a conformant concept document, updates the
+  directory `index.md`, and logs the change.
+- **okf-researcher** — ask a question ("Which table has customer lifetime
+  value?"). It searches the bundle, follows cross-links, and answers with
+  citations. It never edits files.
+
+In **Claude Code**, these run as subagents: Claude delegates to them
+automatically, or you can ask for one by name. In **Copilot Chat**, pick them
+from the agent dropdown. VS Code maps the Claude tool names (`Read`, `Grep`,
+`Glob`, `Edit`, `Write`) to its own tools.
+
+## Requirements and troubleshooting (VS Code)
+
+VS Code discovers `.claude/skills/`, `.claude/agents/`, `AGENTS.md`, and
+`.claude/rules/` by default. If something doesn't show up, check these settings:
+
+- `chat.agentSkillsLocations`: skills (`.claude/skills` is a default location).
+- `chat.agentFilesLocations`: agents (`.claude/agents` is a default location).
+- `chat.useAgentsMdFile`: `AGENTS.md` project instructions.
+- `chat.useClaudeMdFile`: `CLAUDE.md` and `.claude/rules` discovery.
+
+**Not covered:** Copilot CLI and the Copilot cloud agent only read
+`.github/agents/`, so the agents are not available there.
 
 ## Customizing
 
-- **Different bundle location?** Edit the `applyTo` glob in
-  `instructions/okf.instructions.md`.
-- **New skill?** Add a `*.prompt.md` file under `prompts/` with `agent`,
-  `description`, and `tools` frontmatter.
-- **New agent?** Add a `*.agent.md` file under `agents/` with `description`
-  and `tools` frontmatter; the body is the agent's system prompt.
+- **Different bundle location?** Edit the `paths` globs in
+  `.claude/rules/okf.md`.
+- **New skill?** Add `.claude/skills/<name>/SKILL.md` with `name` (must match
+  the folder; lowercase and hyphens) and `description` frontmatter. Phrase the
+  input as "given after the slash command" rather than relying on
+  `$ARGUMENTS`, so the skill reads correctly in both tools.
+- **New agent?** Add `.claude/agents/<name>.md` with `name`, `description`, and
+  a comma-separated `tools` list; the body is the agent's system prompt.
+
+## Safety defaults
+
+- Use least-privilege tool lists in agents and skills.
+- Keep query and retrieval flows read-only.
+- Enable edit tools only for authoring flows that must modify files.

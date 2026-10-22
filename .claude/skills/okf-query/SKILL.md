@@ -1,4 +1,5 @@
 ---
+name: okf-query
 description: Answer a question using only knowledge stored in the workspace's OKF bundle(s), read-only, with citations.
 argument-hint: [question]
 allowed-tools: Read, Grep, Glob
@@ -9,7 +10,8 @@ allowed-tools: Read, Grep, Glob
 Answer this question using only the knowledge stored in the workspace's **Open
 Knowledge Format** bundle(s). Do not modify any files.
 
-$ARGUMENTS
+Input: the question, given after the slash command (Claude Code
+also appends it below as `ARGUMENTS:`). If required input is missing, ask for it.
 
 Safety boundaries:
 

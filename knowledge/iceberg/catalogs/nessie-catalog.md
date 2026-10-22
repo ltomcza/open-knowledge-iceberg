@@ -4,7 +4,7 @@ title: Nessie Catalog
 description: Nessie's git-like versioned catalog — catalog-level branches/tags/commits distinct from Iceberg's own table-level branching, plus configuration.
 aliases: [NessieCatalog, project nessie, nessie iceberg, git-like catalog, catalog branching, multi-table transactions]
 tags: [iceberg, catalog, nessie, versioning, branching]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/nessie
 ---
 
@@ -13,7 +13,7 @@ resource: https://iceberg.apache.org/docs/latest/nessie
 Read this first for **catalog-level git-like versioning** (branches/tags
 spanning the whole catalog, multi-table commits). This is a **different
 concept** from Iceberg table-level branches/tags (created with `ALTER TABLE
-... CREATE BRANCH`, see `/tables/branching-and-tagging.md` or
+... CREATE BRANCH`, see [/architecture/branching-and-tagging.md](/architecture/branching-and-tagging.md) or
 [hive-catalog.md](/catalogs/hive-catalog.md)'s branch/tag DDL examples) — do
 not conflate the two. For generic catalog properties and how to choose a
 catalog, see [catalogs-overview.md](/catalogs/catalogs-overview.md).
@@ -77,7 +77,7 @@ Starting Spark with both runtimes:
 
 ```bash
 bin/spark-sql \
-  --packages "org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.11.0,org.projectnessie.nessie-integrations:nessie-spark-extensions-3.5_2.12:0.105.3" \
+  --packages "org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.12.0,org.projectnessie.nessie-integrations:nessie-spark-extensions-3.5_2.12:0.108.8" \
   --conf spark.sql.extensions="org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions,org.projectnessie.spark.extensions.NessieSparkSessionExtensions"
 ```
 
@@ -87,7 +87,7 @@ Flink (Python API):
 table_env.execute_sql(
     "CREATE CATALOG nessie_catalog WITH ("
     "'type'='iceberg', "
-    "'type'='nessie', "
+    "'catalog-impl'='org.apache.iceberg.nessie.NessieCatalog', "
     "'uri'='http://localhost:19120/api/v2', "
     "'ref'='main', "
     "'warehouse'='/path/to/warehouse')"
@@ -137,7 +137,7 @@ change doesn't work out, with zero impact on `main`.
 
 - [catalogs-overview.md](/catalogs/catalogs-overview.md) — how Nessie fits
   among other catalog choices, generic catalog properties.
-- `/tables/branching-and-tagging.md` — Iceberg's own per-table
+- [/architecture/branching-and-tagging.md](/architecture/branching-and-tagging.md) — Iceberg's own per-table
   branches/tags/snapshots, a different mechanism from Nessie's catalog-level
   branching described here.
 

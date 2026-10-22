@@ -4,7 +4,7 @@ title: 6. Compaction and Maintenance
 description: Deliberately create a small-files problem with many tiny appends, then fix it with rewrite_data_files, expire_snapshots, and remove_orphan_files.
 aliases: [iceberg rewrite_data_files, iceberg compaction tutorial, iceberg expire_snapshots, iceberg small files problem, iceberg remove_orphan_files]
 tags: [tutorial, pyspark, maintenance, compaction, procedures, intermediate]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 difficulty: intermediate
 ---
 
@@ -32,7 +32,7 @@ from pyspark.sql import SparkSession
 spark = (
     SparkSession.builder
     .appName("iceberg-tutorial")
-    .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.11.0")
+    .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.12.0")
     .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
     .config("spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog")
     .config("spark.sql.catalog.local.type", "hadoop")

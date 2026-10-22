@@ -4,7 +4,7 @@ title: Iceberg Catalogs Overview
 description: What an Iceberg catalog does, the available catalog implementations, and the generic catalog properties shared across them.
 aliases: [iceberg catalog, catalog-impl, which catalog to use, catalog properties, custom catalog, metastore]
 tags: [iceberg, catalog, architecture, metadata]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/catalog-properties
 ---
 
@@ -35,8 +35,9 @@ relates to what a catalog tracks, see `/architecture/metadata-layer.md`.
   Glue, AWS DynamoDB, JDBC, Nessie) and supports fully custom catalogs via
   `catalog-impl`.
 - The **REST catalog** is the emerging standard: it decouples clients from a
-  specific metastore implementation and is now the recommended default for
-  new deployments (see [rest-catalog.md](/catalogs/rest-catalog.md)).
+  specific metastore implementation, which makes it a sensible default for
+  new multi-engine deployments (this bundle's recommendation — the Iceberg
+  docs don't rank catalogs; see [rest-catalog.md](/catalogs/rest-catalog.md)).
 - A small set of **generic catalog properties** (`warehouse`, `uri`,
   `catalog-impl`, `io-impl`, `clients`, caching, locking) apply across nearly
   every catalog implementation; catalog-specific properties layer on top.
@@ -68,7 +69,7 @@ below and `/catalogs/glue-catalog-and-s3.md` for the DynamoDB lock manager).
 
 | Catalog | `type` value | Best fit |
 |---|---|---|
-| REST | `rest` | Vendor-neutral, multi-engine, multi-language; the recommended default. See [rest-catalog.md](/catalogs/rest-catalog.md). |
+| REST | `rest` | Vendor-neutral, multi-engine, multi-language; a sensible default (this bundle's view). See [rest-catalog.md](/catalogs/rest-catalog.md). |
 | Hive Metastore | `hive` | Existing Hadoop/Hive ecosystem investment. See [hive-catalog.md](/catalogs/hive-catalog.md). |
 | AWS Glue | `glue` | AWS-native stack (Athena, EMR, Redshift, Lake Formation). See [glue-catalog-and-s3.md](/catalogs/glue-catalog-and-s3.md). |
 | AWS DynamoDB | n/a (`catalog-impl`) | High write throughput, need secondary indexes on table properties. See [glue-catalog-and-s3.md](/catalogs/glue-catalog-and-s3.md). |

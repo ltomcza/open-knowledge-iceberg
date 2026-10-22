@@ -4,7 +4,7 @@ title: 9. Iceberg Through Spark Connect
 description: Run an Iceberg-enabled Spark Connect server and drive it from a separate thin pyspark-client environment — the same table operations from tutorial 2, over gRPC instead of an embedded driver.
 aliases: [spark connect iceberg tutorial, remote pyspark iceberg, pyspark-client iceberg walkthrough]
 tags: [tutorial, pyspark, spark-connect, intermediate]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 difficulty: intermediate
 ---
 
@@ -17,15 +17,16 @@ difficulty: intermediate
   `sbin/start-connect-server.sh` script. Download and extract it:
 
   ```bash
-  curl -O https://downloads.apache.org/spark/spark-4.1.0/spark-4.1.0-bin-hadoop3.tgz
+  curl -O https://archive.apache.org/dist/spark/spark-4.1.0/spark-4.1.0-bin-hadoop3.tgz
   tar -xvf spark-4.1.0-bin-hadoop3.tgz
   cd spark-4.1.0-bin-hadoop3
   ```
 
   (Check [the Spark downloads page](https://spark.apache.org/downloads.html) for the current release
-  if `4.1.0` is no longer listed. If you already have `pyspark` pip-installed, its package also bundles
-  a `sbin/` directory under site-packages — `python -c "import pyspark,os;
-  print(os.path.dirname(pyspark.__file__))"` — you can use that instead of downloading separately.)
+  — `downloads.apache.org` only keeps current releases, older ones move to `archive.apache.org`.
+  A pip-installed `pyspark` does **not** include `start-connect-server.sh`; with only pip PySpark, run
+  `spark-submit --class org.apache.spark.sql.connect.service.SparkConnectServer` with the same flags as
+  step 1 instead, as the Docker mapping in tutorial 1 describes.)
 - Two separate terminals (and ideally two separate Python virtualenvs — see Common Pitfalls).
 
 # What You'll Learn
@@ -44,7 +45,7 @@ In your first terminal, from the extracted Spark distribution directory:
 
 ```bash
 ./sbin/start-connect-server.sh \
-  --packages org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.11.0 \
+  --packages org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.12.0 \
   --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions \
   --conf spark.sql.catalog.local=org.apache.iceberg.spark.SparkCatalog \
   --conf spark.sql.catalog.local.type=hadoop \
@@ -52,10 +53,13 @@ In your first terminal, from the extracted Spark distribution directory:
   --conf spark.sql.defaultCatalog=local
 ```
 
-**Expected output:** Spark resolves the Iceberg runtime jar (first run only) and logs startup messages
-ending with the Connect server listening, by default on port `15002`. The process keeps running in the
-foreground — leave this terminal open. Check the log file it prints the path to if you want to confirm
-it started cleanly.
+**Expected output:** the script starts the server **in the background** (via `spark-daemon.sh`) and
+returns immediately, printing the path of its log file (`starting
+org.apache.spark.sql.connect.service.SparkConnectServer, logging to ...`). Tail that log to watch Spark
+resolve the Iceberg runtime jar (first run only) and start listening on port `15002`. To keep it in the
+foreground instead, pass `--wait` as the first argument. Stop it later with
+`./sbin/stop-connect-server.sh`. (Corrected 2026-10-22 — an earlier version said the script stays in
+the foreground.)
 
 ## 2. Install the Spark Connect client in a separate environment
 
@@ -177,7 +181,7 @@ In the server terminal (or from the Spark distribution directory in a new shell)
 # Next Steps
 
 For the full picture of what Spark Connect is, why it exists, and its constraints beyond Iceberg, see
-[/pyspark/spark-connect.md](/pyspark/spark-connect.md). This was the last tutorial in the numbered
+[/pyspark/spark-connect.md](/pyspark/spark-connect.md). This is the last tutorial in the numbered
 series — from here, the [pyspark/](/pyspark/index.md), [catalogs/](/catalogs/index.md),
 [maintenance/](/maintenance/index.md), and [performance/](/performance/index.md) reference sections are
 your ongoing lookup material for building real pipelines.
@@ -187,3 +191,4 @@ your ongoing lookup material for building real pipelines.
 [1] [Spark Connect Overview](https://spark.apache.org/docs/latest/spark-connect-overview.html)
 [2] [Quickstart: Spark Connect (PySpark docs)](https://spark.apache.org/docs/latest/api/python/getting_started/quickstart_connect.html)
 [3] [Iceberg Spark Getting Started](https://iceberg.apache.org/docs/latest/spark-getting-started/)
+[4] [apache/spark branch-4.1 — sbin/start-connect-server.sh (`spark-daemon.sh submit`, `--wait`)](https://github.com/apache/spark/blob/branch-4.1/sbin/start-connect-server.sh)

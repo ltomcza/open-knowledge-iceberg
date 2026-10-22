@@ -4,7 +4,7 @@ title: PyIceberg — Writing, Deleting, and Upserting Data
 description: Appending, overwriting, deleting, and upserting Arrow data into Iceberg tables with PyIceberg, plus transactions and snapshot properties.
 aliases: [pyiceberg append, pyiceberg overwrite, pyiceberg upsert, pyiceberg delete, pyiceberg transaction, table.append, table.upsert, dynamic_partition_overwrite]
 tags: [pyiceberg, python, writing, upsert, delete, transaction]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://py.iceberg.apache.org/api
 ---
 
@@ -23,6 +23,9 @@ filter syntax used in `delete_filter`/`overwrite_filter`, see
 - Writes are done with PyArrow tables: `table.append(df)`,
   `table.overwrite(df, overwrite_filter=...)`, `table.delete(delete_filter=...)`,
   `table.upsert(df, join_cols=[...])`, and `table.dynamic_partition_overwrite(df)`.
+  `append()`/`overwrite()` also accept a `pyarrow.RecordBatchReader` to stream
+  larger-than-memory data into files of about `write.target-file-size-bytes`
+  (unpartitioned tables only, current docs).
 - **PyIceberg defaults to "fast append"** (unlike Java Iceberg's merge-on-commit
   default) — this speeds up commits and reduces conflicts but creates more
   metadata over time. **Compaction is not yet built into PyIceberg** (tracked
@@ -252,3 +255,4 @@ Notes:
 # Citations
 
 [1] [PyIceberg — Python API](https://py.iceberg.apache.org/api)
+[2] [PyIceberg — Streaming writes from a RecordBatchReader](https://py.iceberg.apache.org/api/#streaming-writes-from-a-recordbatchreader)

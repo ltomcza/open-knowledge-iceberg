@@ -4,7 +4,7 @@ title: Sort Order and File Layout
 description: How table sort order improves min/max stat-based file pruning, z-order/Hilbert clustering for multi-column filters, and when to choose sort vs z-order during compaction.
 aliases: [sort order, z-order, zorder, hilbert clustering, file layout, min-max pruning, data clustering]
 tags: [iceberg, performance, sort-order, z-order, compaction, file-pruning]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/performance/
 ---
 
@@ -78,7 +78,8 @@ column — much like a composite index, filtering on a trailing sort column
 alone gets little benefit because rows with a given trailing-column value
 are still scattered across the range of the leading column.
 
-Z-order (and similarly, Hilbert-curve clustering) addresses this by
+Z-order (and similarly Hilbert-curve clustering — available as
+`sort_order => 'hilbert(c1,c2)'` on Spark 4.1 since Iceberg 1.12) addresses this by
 interleaving the bits of multiple columns into a single synthetic ordering
 key, then sorting by that key. The effect is that files become
 simultaneously *somewhat* clustered on each participating column — not as
@@ -108,9 +109,11 @@ Practical note: sort/z-order is applied as a compaction strategy, so it has
 the same operational cost profile as compaction generally (a Spark job
 rewriting files) — see
 [/maintenance/compaction-and-file-sizing.md](/maintenance/compaction-and-file-sizing.md)
-for cadence guidance. Re-running it periodically is necessary to keep newly
-written (unsorted) data clustered, since ordinary appends between
-compaction runs are not sorted relative to existing files.
+for cadence guidance. If the table has a write order (`ALTER TABLE ...
+WRITE ORDERED BY`), Spark writes already request a range distribution and
+sort, so each new file is sorted — but new files still overlap the ranges of
+existing ones, so periodic sort/z-order compaction is what keeps the table as
+a whole tightly clustered. Without a write order, appends are unsorted.
 
 # Citations
 

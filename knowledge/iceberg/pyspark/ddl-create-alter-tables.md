@@ -4,7 +4,7 @@ title: DDL — Create, Alter, and Drop Iceberg Tables in PySpark
 description: CREATE TABLE, CTAS/RTAS, ALTER TABLE (columns, partition fields, sort order, identifier fields, branches/tags), DROP TABLE, and Iceberg views, all via spark.sql(...) in PySpark.
 aliases: [iceberg create table pyspark, alter table add column iceberg, iceberg partition transform, spark ddl iceberg, drop table purge, create table as select iceberg, iceberg add partition field]
 tags: [iceberg, pyspark, spark, ddl, sql, partitioning, schema-evolution]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/spark-ddl
 ---
 
@@ -65,7 +65,8 @@ USING iceberg
 ```
 
 Iceberg converts Spark column types to Iceberg types automatically — see
-the type-compatibility table in `/pyspark/setup-and-configuration.md`.
+the Spark type-compatibility tables on the Iceberg "Spark Getting Started"
+page (cited below).
 
 ## PARTITIONED BY
 
@@ -378,7 +379,7 @@ spark.sql("ALTER TABLE prod.db.sample DROP BRANCH `audit-branch`")
 spark.sql("ALTER TABLE prod.db.sample DROP TAG `historical-tag`")
 ```
 
-See `/branching/` (owned elsewhere in this bundle) for branch/tag semantics
+See [/architecture/branching-and-tagging.md](/architecture/branching-and-tagging.md) for branch/tag semantics
 and use cases such as Write-Audit-Publish.
 
 # Iceberg Views in Spark (3.4+)
@@ -433,3 +434,4 @@ spark.sql("DESCRIBE EXTENDED my_view")
 # Citations
 
 [1] [Spark DDL](https://iceberg.apache.org/docs/latest/spark-ddl)
+[2] [Spark Getting Started — Type compatibility](https://iceberg.apache.org/docs/latest/spark-getting-started/#type-compatibility)

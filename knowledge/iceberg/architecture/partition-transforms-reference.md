@@ -4,7 +4,7 @@ title: Partition Transforms Reference
 description: Full reference of Iceberg's partition transform functions (identity, bucket[N], truncate[W], year, month, day, hour, void) with semantics, source/result types, and when to use each.
 aliases: [bucket transform, truncate transform, identity transform, void transform, year month day hour transform, partition transforms]
 tags: [iceberg, architecture, partitioning, transforms, reference]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/spec
 ---
 
@@ -35,7 +35,7 @@ order IDs attach to files.
 
 | Transform | Description | Valid source types | Result type |
 |---|---|---|---|
-| `identity` | Source value, unmodified | Any except `geometry`, `geography`, `variant` | Source type |
+| `identity` | Source value, unmodified | Any primitive except `geometry` and `geography` | Source type |
 | `bucket[N]` | Hash of value, mod `N` | `int`, `long`, `decimal`, `date`, `time`, `timestamp`, `timestamptz`, `timestamp_ns`, `timestamptz_ns`, `string`, `uuid`, `fixed`, `binary` | `int` |
 | `truncate[W]` | Value truncated to width `W` | `int`, `long`, `decimal`, `string`, `binary` | Source type |
 | `year` | Year, as years since 1970 | `date`, `timestamp`, `timestamptz`, `timestamp_ns`, `timestamptz_ns` | `int` |

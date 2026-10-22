@@ -4,7 +4,7 @@ title: JDBC Catalog
 description: Using a relational database (via JDBC) as an Iceberg catalog — configuration properties and connection examples.
 aliases: [JdbcCatalog, jdbc catalog, relational database catalog, mysql catalog, postgres catalog, rds jdbc catalog]
 tags: [iceberg, catalog, jdbc, relational-database]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/jdbc
 ---
 
@@ -52,7 +52,7 @@ connection properties.
 ## Spark (MySQL)
 
 ```bash
-spark-sql --packages org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.11.0 \
+spark-sql --packages org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.12.0 \
     --conf spark.sql.catalog.my_catalog=org.apache.iceberg.spark.SparkCatalog \
     --conf spark.sql.catalog.my_catalog.warehouse=s3://my-bucket/my/key/prefix \
     --conf spark.sql.catalog.my_catalog.type=jdbc \

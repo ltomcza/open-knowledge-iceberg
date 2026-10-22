@@ -4,7 +4,7 @@ title: Spark Stored Procedures Reference — CALL system.* in PySpark
 description: Exact CALL syntax and named arguments for every Iceberg Spark stored procedure — rollback, snapshot management, expire_snapshots, remove_orphan_files, rewrite_data_files/manifests/position_delete_files, migrate/snapshot/add_files, register_table, changelog views, table statistics, and table-path replication.
 aliases: [CALL system.rewrite_data_files, CALL system.expire_snapshots, iceberg spark procedures, rollback_to_snapshot, remove_orphan_files, migrate table to iceberg, add_files procedure, create_changelog_view, rewrite_manifests, compute_table_stats]
 tags: [iceberg, pyspark, spark, procedures, maintenance, migration, cdc]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/spark-procedures
 ---
 
@@ -169,7 +169,7 @@ Bin-packs or sorts small/large data files into files closer to
 |---|---|---|---|
 | `table` | yes | string | |
 | `strategy` | no | string | `binpack` (default) or `sort` |
-| `sort_order` | no | string | `zorder(c1,c2,c3)` **or** comma-separated `ColumnName ASC\|DESC NULLS FIRST\|LAST`; defaults to table's sort order |
+| `sort_order` | no | string | `zorder(c1,c2,c3)`, `hilbert(c1,c2,c3)` (Spark 4.1, Iceberg 1.12+), **or** comma-separated `ColumnName ASC\|DESC NULLS FIRST\|LAST`; defaults to table's sort order. `zorder`/`hilbert` can't be combined with each other or with plain columns |
 | `options` | no | map | see general options table below |
 | `where` | no | string | filter predicate; all files that may contain matching data are selected |
 
@@ -194,6 +194,8 @@ Bin-packs or sorts small/large data files into files closer to
 | `output-spec-id` | current spec id | Partition spec to align rewritten output to |
 | `remove-dangling-deletes` | false | Also drop delete files that no longer apply to any live data file (extra commit) |
 | `max-files-to-rewrite` | null (all) | Upper limit on files rewritten in this call |
+| `max-file-group-input-files` | Long.MAX_VALUE | Max input files per file group (1.12+) |
+| `cache-delete-files` | false | Use the executor cache for delete files during the rewrite (1.12+; helps when one delete file applies to many data files) |
 
 Sort-strategy-only options: `compression-factor` (default `1.0`, adjusts
 estimated output file count vs on-disk size), `shuffle-partitions-per-file`
@@ -312,6 +314,7 @@ table's data files (e.g. a Hive `DELETE`) corrupts the snapshot's view.
 | `location` | no | string | defaults to catalog's default location |
 | `properties` | no | map | properties for the new table |
 | `parallelism` | no | int | file-reading thread count, default 1 |
+| `ignore_missing_files` | no | boolean | false; skip source data files that can't be found (1.12+) |
 
 ```python
 spark.sql("CALL catalog_name.system.snapshot('db.sample', 'db.snap')")
@@ -335,6 +338,7 @@ as backup (`table_BACKUP_<n>` by default) unless disabled.
 | `drop_backup` | no | boolean | false; if true, no backup table is kept |
 | `backup_table_name` | no | string | default `table_BACKUP_` |
 | `parallelism` | no | int | default 1 |
+| `ignore_missing_files` | no | boolean | false; skip source data files that can't be found (1.12+) |
 
 ```python
 spark.sql("CALL catalog_name.system.migrate('spark_catalog.db.sample', map('foo', 'bar'))")
@@ -615,7 +619,9 @@ path pairs), `rewritten_manifest_file_paths_count`,
 `rewritten_delete_file_paths_count`.
 
 > Tables with partition statistics files are not currently supported by
-> `rewrite_table_path`.
+> `rewrite_table_path` (per the 1.12 procedure docs). Note that the 1.11.0
+> release notes list "Add Support for PartitionStatistics Files in
+> RewriteTablePath (#13956)" — test on your version before relying on either.
 
 # Citations
 

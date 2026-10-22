@@ -4,7 +4,7 @@ title: 5. Upsert, MERGE INTO, and CDC
 description: Build a staging DataFrame of updates, inserts, and deletes, then apply it to a target table in one atomic MERGE INTO statement.
 aliases: [iceberg merge into pyspark, iceberg upsert, iceberg when matched when not matched, iceberg cdc example]
 tags: [tutorial, pyspark, merge-into, upsert, cdc, intermediate]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 difficulty: intermediate
 ---
 
@@ -32,7 +32,7 @@ from pyspark.sql import SparkSession
 spark = (
     SparkSession.builder
     .appName("iceberg-tutorial")
-    .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.11.0")
+    .config("spark.jars.packages", "org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.12.0")
     .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
     .config("spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog")
     .config("spark.sql.catalog.local.type", "hadoop")

@@ -4,7 +4,7 @@ title: 1. Environment Setup
 description: Build a self-contained Docker image with PySpark and Iceberg pre-installed, and drive it from VS Code using tasks to build the image, run scripts, and debug them.
 aliases: [iceberg docker environment, pyspark docker vscode, iceberg vs code debug, dockerized spark iceberg, spark iceberg devcontainer tasks]
 tags: [tutorial, pyspark, setup, docker, vscode, debugging, beginner]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 difficulty: intermediate
 ---
 
@@ -33,8 +33,9 @@ difficulty: intermediate
 
 # Why Docker for This
 
-Every other tutorial in this series is written to run directly on your machine with a plain `pip install
-pyspark`. That's the fastest path to your first table. This tutorial instead builds a **reusable,
+The later tutorials show plain `pyspark` / `python script.py` commands, so they also work directly on a
+machine with `pip install pyspark` and Java 17+ — but the recommended path is to run them in this
+container (see the mapping at the end). That's the fastest path to your first table. This tutorial instead builds a **reusable,
 disposable, identical-on-every-OS environment** — useful once you're doing more than a single script:
 no Java version conflicts with other projects, no "works on my machine," and a debugger that works the
 same on Windows, macOS, and Linux. Everything from tutorial 2 onward still applies unchanged once this
@@ -71,7 +72,7 @@ iceberg-spark-docker/
 
 ## 2. Write the Dockerfile
 
-This bakes a JRE, PySpark (which conveniently bundles the full Spark distribution — `bin/`, `sbin/`,
+This bakes a JRE, PySpark (whose pip wheel bundles Spark's `bin/` scripts and all `jars/`, but only a few `sbin/`
 `jars/`), the Iceberg Spark runtime jar, and `debugpy` for remote debugging into one image:
 
 ```dockerfile
@@ -80,7 +81,7 @@ FROM eclipse-temurin:17-jre-jammy
 
 ARG SPARK_VERSION=4.1.0
 ARG ICEBERG_SPARK_LINE=4.1
-ARG ICEBERG_VERSION=1.11.0
+ARG ICEBERG_VERSION=1.12.0
 ARG SCALA_VERSION=2.13
 
 RUN apt-get update && \
@@ -88,7 +89,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     ln -sf /usr/bin/python3 /usr/bin/python
 
-# pyspark's pip wheel bundles the full Spark distribution (bin/, sbin/, jars/, python/).
+# pyspark's pip wheel bundles bin/, jars/ and python/, but only 4 sbin/ scripts
+# (no start-connect-server.sh) -- see the tutorial 9 mapping below.
 RUN pip3 install --no-cache-dir \
       "pyspark[connect]==${SPARK_VERSION}" \
       debugpy \
@@ -339,11 +341,11 @@ With `hello_iceberg.py` open and active in the editor, run task **Spark: Run Cur
 **Expected output**, after Spark's (verbose, normal) startup logging:
 
 ```
-+---+---------------+
-| id|        message|
-+---+---------------+
++---+--------------+
+| id|       message|
++---+--------------+
 |  1|hello, iceberg|
-+---+---------------+
++---+--------------+
 ```
 
 ## 11. Debug your first script
@@ -406,9 +408,15 @@ a later tutorial says:
 - *"Save this as `foo.py` and run `python foo.py`"* → save `foo.py` anywhere inside this project folder,
   make it the active editor tab, and use **Spark: Run Current File** (or the debug task) instead of
   running Python on your host — your host doesn't need Python or Java installed at all with this setup.
-- Tutorial 9 (Spark Connect)'s `./sbin/start-connect-server.sh` command → run it via the **Spark: Open
-  Bash Shell** task, then start a second container shell (or a `pyspark-client` install on your host) to
-  connect to `sc://localhost:15002`, which is already published in `docker-compose.yml`.
+- Tutorial 9 (Spark Connect)'s `./sbin/start-connect-server.sh` command → the pip-installed PySpark in
+  this image does **not** ship `start-connect-server.sh` (its wheel only includes `spark-config.sh`,
+  `spark-daemon.sh`, and the history-server scripts). Instead, open the **Spark: Open Bash Shell** task
+  and launch the same server class that script runs, in the foreground:
+  `spark-submit --class org.apache.spark.sql.connect.service.SparkConnectServer --conf spark.connect.grpc.binding.port=15002`
+  (the Iceberg catalog settings already come from the baked-in `spark-defaults.conf`). Then use a second
+  container shell, or a `pyspark-client` install on your host, to connect to `sc://localhost:15002`,
+  which is already published in `docker-compose.yml`. (Corrected 2026-10-22 — an earlier version said
+  the wheel bundled the full `sbin/`.)
 
 # Next Steps
 
@@ -434,3 +442,4 @@ devcontainer.json` file — out of scope here, but a natural next step.
 [4] [VS Code: Python debugging (debugpy attach configurations)](https://code.visualstudio.com/docs/python/debugging)
 [5] [VS Code: Tasks](https://code.visualstudio.com/docs/editor/tasks)
 [6] [Docker Compose file reference](https://docs.docker.com/compose/)
+[7] [apache/spark branch-4.1 — python/packaging/classic/setup.py (`pyspark.sbin` package data)](https://github.com/apache/spark/blob/branch-4.1/python/packaging/classic/setup.py)

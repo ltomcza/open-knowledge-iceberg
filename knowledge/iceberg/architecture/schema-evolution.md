@@ -4,7 +4,7 @@ title: Schema Evolution
 description: How Iceberg supports safe, in-place schema changes (add/drop/rename/reorder/widen columns) via permanent column IDs, and why this differs from Hive/Parquet schema evolution.
 aliases: [schema evolution, add column, drop column, rename column, column id, type promotion, iceberg vs hive schema, correctness guarantees]
 tags: [iceberg, architecture, schema, evolution, correctness]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/evolution
 ---
 
@@ -59,9 +59,12 @@ would change key equality semantics.
   table-metadata level so new fields never collide with old (even dropped)
   ones.
 - **Column projection** at read time resolves file columns using field IDs,
-  not names/positions. If a data file lacks a field entirely (written
-  before the field existed), Iceberg falls back to `initial-default`, then
-  `schema.name-mapping.default`, then `null`.
+  not names/positions. If a data file lacks a field id, the spec resolves
+  it in this order: (1) the identity-partition value from the manifest's
+  `partition` struct, (2) `schema.name-mapping.default` for files written
+  without field ids, (3) the field's `initial-default`, (4) `null`.
+  (Corrected 2026-10-22 — an earlier version had the order wrong and
+  omitted the identity-partition step.)
 - Consequence: formats that track columns **by name** can accidentally
   "un-delete" data if a name is reused for a different field — this
   violates Iceberg's guarantee #1 (added columns never inherit stale

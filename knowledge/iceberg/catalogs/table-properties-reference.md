@@ -4,7 +4,7 @@ title: Table Properties Reference
 description: Full reference of Iceberg table properties — read, write, encryption, commit-retry/behavior, reserved, informational, and compatibility properties.
 aliases: [iceberg table properties, write.format.default, commit.retry, format-version, table configuration, TBLPROPERTIES]
 tags: [iceberg, table-properties, configuration, reference]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/configuration
 ---
 
@@ -53,6 +53,8 @@ concepts. For AWS/S3-specific write behaviors like object-store layout, see
 | `read.parquet.vectorization.batch-size` | 5000 | Batch size for Parquet vectorized reads. |
 | `read.orc.vectorization.enabled` | false | Controls whether ORC vectorized reads are used. |
 | `read.orc.vectorization.batch-size` | 5000 | Batch size for ORC vectorized reads. |
+| `read.split.adaptive-size.enabled` | true | Adapt split size to scan size and available parallelism when no explicit split size is set. |
+| `read.data-planning-mode` / `read.delete-planning-mode` | auto | `auto`, `local`, or `distributed` scan planning for data / delete manifests. |
 
 # Write properties
 
@@ -61,6 +63,7 @@ concepts. For AWS/S3-specific write behaviors like object-store layout, see
 | `write.format.default` | parquet | Default file format: parquet, avro, or orc. |
 | `write.delete.format.default` | data file format | Default delete file format. |
 | `write.parquet.row-group-size-bytes` | 134217728 (128 MB) | Parquet row group size. |
+| `write.parquet.row-group-size-track-uncompressed` | false | Track raw data size to enforce the row-group target accurately with compressing codecs (1.12+). |
 | `write.parquet.page-size-bytes` | 1048576 (1 MB) | Parquet page size. |
 | `write.parquet.page-version` | v1 | `v1` or `v2` Parquet data page version. |
 | `write.parquet.page-row-limit` | 20000 | Parquet page row limit. |
@@ -71,6 +74,8 @@ concepts. For AWS/S3-specific write behaviors like object-store layout, see
 | `write.parquet.variant-inference-buffer-size` | 100 | Rows buffered for schema inference when variant shredding is enabled. |
 | `write.parquet.bloom-filter-enabled.column.col1` | not set | Write a bloom filter for column `col1`. |
 | `write.parquet.bloom-filter-max-bytes` | 1048576 (1 MB) | Max bytes for a bloom filter bitset. |
+| `write.parquet.bloom-filter-adaptive-enabled` | false | Adaptive bloom-filter sizing: pick the smallest filter meeting the actual NDV at the configured FPP (1.12+). |
+| `write.parquet.dict-encoding-enabled.column.col1` | not set | Per-column Parquet dictionary encoding toggle (1.12+). |
 | `write.parquet.bloom-filter-fpp.column.col1` | 0.01 | False positive probability for `col1`'s bloom filter (0 < x < 1). |
 | `write.parquet.bloom-filter-ndv.column.col1` | not set | Expected distinct values for `col1`'s bloom filter (> 0). |
 | `write.parquet.stats-enabled.column.col1` | not set | Whether to collect Parquet column statistics for `col1`. |
@@ -167,7 +172,7 @@ Documentation-only; do not affect read/write behavior.
   everything in this document.
 - [glue-catalog-and-s3.md](/catalogs/glue-catalog-and-s3.md) — S3-specific
   storage properties (`s3.*`) that layer on top of `write.*` behavior here.
-- `/tables/branching-and-tagging.md` — how `history.expire.*` interacts with
+- [/architecture/branching-and-tagging.md](/architecture/branching-and-tagging.md) — how `history.expire.*` interacts with
   branches/tags.
 
 # Citations

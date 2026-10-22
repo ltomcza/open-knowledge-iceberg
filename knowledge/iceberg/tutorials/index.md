@@ -5,7 +5,8 @@ a small, disposable Docker image with PySpark and Iceberg pre-installed and wire
 for running and debugging scripts; every tutorial from there on uses that same environment, a local
 filesystem catalog writing to a fixed warehouse path, so nothing here requires a Hive Metastore or any
 cloud account — you need Docker and VS Code, but no Java or Python installed on your host at all. (The
-only exception is tutorial 8, which is pure Python and doesn't need Spark/Java either way.) If you
+exceptions: tutorial 8 is pure Python and needs only Python 3.10+, and tutorial 9's thin
+`pyspark-client` can run on your host or in a second container shell.) If you
 already know Iceberg's concepts and just need exact syntax, the sibling directories (`/architecture/`,
 `/pyspark/`, `/catalogs/`, `/maintenance/`, `/pyiceberg/`) are dense, retrieval-optimized references
 instead — each tutorial links out to the relevant reference pages for readers who want to go deeper on

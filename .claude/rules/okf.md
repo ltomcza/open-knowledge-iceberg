@@ -1,13 +1,16 @@
 ---
 description: 'Open Knowledge Format (OKF) authoring rules — applied automatically when editing knowledge bundle files.'
-applyTo: "**/bundles/**/*.md, **/catalog/**/*.md, **/knowledge/**/*.md"
+paths:
+  - "**/bundles/**/*.md"
+  - "**/catalog/**/*.md"
+  - "**/knowledge/**/*.md"
 ---
 
 # Open Knowledge Format (OKF) — authoring rules
 
 You are editing a file inside an **OKF knowledge bundle**. A bundle is a
 directory tree of markdown files that is human-readable, agent-parseable, and
-diffable in git. The canonical specification is [`.github/okf/SPEC.md`](../okf/SPEC.md);
+diffable in git. The canonical specification is [`.claude/okf/SPEC.md`](../okf/SPEC.md);
 these rules are a working summary. When the two disagree, `SPEC.md` wins.
 
 ## Concept documents

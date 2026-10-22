@@ -4,7 +4,7 @@ title: Compaction and File Sizing
 description: Why small files hurt Iceberg performance and how to compact them with rewrite_data_files (bin-pack, sort, z-order strategies).
 aliases: [compaction, rewrite_data_files, file compaction, bin-packing, small files problem, target-file-size-bytes]
 tags: [iceberg, maintenance, compaction, performance, spark]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/docs/latest/maintenance/
 ---
 
@@ -95,7 +95,7 @@ CALL catalog_name.system.rewrite_data_files('db.sample');
 | Strategy | What it does | Use when |
 |---|---|---|
 | `binpack` (default) | Combines small files and splits oversized ones into `target-file-size-bytes` chunks; does not reorder rows | General-purpose, cheapest, run frequently |
-| `sort` | Bin-packs, but also globally sorts data by a single-column or multi-column sort order before writing | Queries filter/range-scan on a known leading column (improves min/max stat pruning) |
+| `sort` | Bin-packs, but also sorts the rows of each file group (bounded by `max-file-group-size-bytes`, within a partition) by a single- or multi-column sort order before writing — not a global sort across the table | Queries filter/range-scan on a known leading column (improves min/max stat pruning) |
 | `sort` with `zorder(...)` | Bin-packs, then interleaves multiple columns via a z-order curve so files cluster well on *any* of several filter columns | Queries filter on different combinations of 2+ columns, no single dominant predicate column |
 
 ```sql
@@ -137,8 +137,11 @@ interacts with min/max-based file pruning.
 # After Large Row-Level Updates
 
 On merge-on-read tables, compaction is also how delete files get folded
-back into data files — but only if the delete thresholds are set
-(`delete-file-threshold` is effectively disabled by default). For the full
+back into data files. `delete-ratio-threshold` (default `0.3`) is active by
+default, so data files with at least 30% of rows deleted are already
+rewritten; `delete-file-threshold` (default `2147483647`) is effectively off,
+so lower it to also catch files that carry delete files but a lower delete
+ratio. For the full
 post-update sequence (diagnosis queries, delete-aware compaction,
 `rewrite_position_delete_files`, manifests, expiry at scale) see
 [/maintenance/post-update-maintenance-runbook.md](/maintenance/post-update-maintenance-runbook.md).

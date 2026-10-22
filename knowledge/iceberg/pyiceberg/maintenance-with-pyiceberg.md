@@ -4,7 +4,7 @@ title: PyIceberg — Table Maintenance (Snapshot Expiration and Snapshot Managem
 description: Maintenance operations available from PyIceberg's Python API — expiring snapshots, managing branches/tags, and rollback — plus what is NOT yet available (compaction) compared to Spark.
 aliases: [pyiceberg expire_snapshots, pyiceberg maintenance, pyiceberg compaction, pyiceberg rewrite_data_files, table.maintenance, MaintenanceTable, ExpireSnapshots, ManageSnapshots]
 tags: [pyiceberg, python, maintenance, snapshots, expire-snapshots, compaction]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://py.iceberg.apache.org/reference/pyiceberg/table/maintenance
 ---
 
@@ -31,6 +31,13 @@ duplicate. For writes that create the snapshots being managed, see
 - What PyIceberg **does** provide from Python: `table.maintenance.expire_snapshots()`
   (an `ExpireSnapshots` builder) and `table.manage_snapshots()` (a
   `ManageSnapshots` builder for tags, branches, and rollback).
+- **PyIceberg's `expire_snapshots()` only removes snapshot entries from table
+  metadata — it does not delete any data, manifest, or manifest-list files**,
+  and it has no `retain_last` / `history.expire.*` handling. Storage is not
+  reclaimed; the unreferenced files become orphans that Spark's
+  `remove_orphan_files` must clean up. Verified 2026-10-22 against PyIceberg
+  0.12.0: after `expire_snapshots().by_id(...)` the snapshot was gone but
+  every Parquet file was still on disk.
 - `expire_snapshots()` can target snapshots `.by_id(id)`, `.by_ids([...])`, or
   `.older_than(datetime)`; branch/tag **HEAD snapshots are always protected**
   from expiration automatically.
@@ -44,7 +51,7 @@ duplicate. For writes that create the snapshots being managed, see
 
 | Operation | PyIceberg | Spark/Java Iceberg |
 |---|---|---|
-| Expire snapshots | Yes — `table.maintenance.expire_snapshots()` | Yes — `expire_snapshots` procedure |
+| Expire snapshots | Metadata only — removes snapshots, deletes no files | Yes — `expire_snapshots` procedure, also deletes unreferenced files |
 | Create/remove branch or tag | Yes — `table.manage_snapshots()` | Yes |
 | Rollback to snapshot/timestamp | Yes — `table.manage_snapshots()` | Yes |
 | Set current snapshot | Yes — `set_current_snapshot()` | Yes |
@@ -52,8 +59,9 @@ duplicate. For writes that create the snapshots being managed, see
 | Rewrite manifests | Not exposed as a maintenance builder | Yes |
 | Remove orphan files | Not exposed as a maintenance builder | Yes |
 
-If you need compaction or orphan-file cleanup today, run those actions from
-Spark against the same Iceberg table/catalog rather than PyIceberg.
+If you need compaction, orphan-file cleanup, or storage reclamation after
+expiring snapshots, run those actions from Spark against the same Iceberg
+table/catalog rather than PyIceberg.
 
 # Snapshot Expiration
 
@@ -188,3 +196,4 @@ table.manage_snapshots().rollback_to_timestamp(timestamp_ms).commit()
 [1] [PyIceberg — Python API: Table Maintenance](https://py.iceberg.apache.org/api#table-maintenance)
 [2] [PyIceberg reference — `maintenance` module](https://py.iceberg.apache.org/reference/pyiceberg/table/maintenance)
 [3] [PyIceberg reference — `table/update/snapshot` module](https://py.iceberg.apache.org/reference/pyiceberg/table/update/snapshot)
+[4] [apache/iceberg-python — `ExpireSnapshots._commit` (emits only `RemoveSnapshotsUpdate`)](https://github.com/apache/iceberg-python/blob/main/pyiceberg/table/update/snapshot.py)

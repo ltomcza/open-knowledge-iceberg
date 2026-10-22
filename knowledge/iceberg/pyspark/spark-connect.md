@@ -4,7 +4,7 @@ title: Using Iceberg Tables Through Spark Connect
 description: How to configure an Iceberg-enabled Spark Connect server and drive it from a thin pyspark-client, including the config-must-be-server-side constraint.
 aliases: [iceberg spark connect, pyspark client sc://, spark connect iceberg catalog, remote spark session iceberg, start-connect-server iceberg]
 tags: [pyspark, spark-connect, catalog, configuration, client-server]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://spark.apache.org/docs/latest/spark-connect-overview.html
 ---
 
@@ -58,7 +58,7 @@ same local Hadoop-catalog setup as the rest of this knowledge base's tutorials
 ```bash
 # From a full Spark distribution (has sbin/start-connect-server.sh)
 ./sbin/start-connect-server.sh \
-  --packages org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.11.0 \
+  --packages org.apache.iceberg:iceberg-spark-runtime-4.1_2.13:1.12.0 \
   --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions \
   --conf spark.sql.catalog.local=org.apache.iceberg.spark.SparkCatalog \
   --conf spark.sql.catalog.local.type=hadoop \
@@ -146,8 +146,8 @@ those files applies unchanged under Spark Connect.
 | Catalog/extension config can't be set from the client | Client has no access to static Spark config or `SparkContext` | Set `spark.sql.catalog.*`, `spark.sql.extensions`, and `spark.jars.packages` on the server (`start-connect-server.sh` flags or `spark-defaults.conf`) |
 | `pyspark` and `pyspark-client` conflict | They're separate, incompatible packages providing the same `pyspark` module namespace | Use a dedicated virtualenv for Connect client code |
 | Client/server version skew | Protocol compatibility is best within the same Spark line | Pin `pyspark-client==<version>` to match the server's Spark version |
-| `spark.range(...)`-style RDD access, `SparkContext`, and low-level Java/Scala catalog plugin classes | Spark Connect doesn't expose RDDs or the driver JVM to the client | Stay on DataFrame/SQL APIs, which is how you'd write Iceberg code anyway |
-| UDFs | Require registering a `ClassFinder`/artifact upload so the server can fetch client-defined code | Only relevant if you use Python/Scala UDFs inside Iceberg pipelines; plain SQL and built-in functions need no extra setup |
+| RDD APIs (`df.rdd`, `sc.parallelize`), `SparkContext`, and low-level Java/Scala catalog plugin classes | Spark Connect doesn't expose RDDs or the driver JVM to the client | Stay on DataFrame/SQL APIs, which is how you'd write Iceberg code anyway |
+| UDFs | Python UDFs work by default (the server needs a compatible Python); Scala/Java client UDFs need a `ClassFinder` or artifact upload so the server can fetch the classes | Only relevant if you use UDFs inside Iceberg pipelines; plain SQL and built-in functions need no extra setup |
 | Two SparkSessions can't coexist | A classic local `SparkSession` and a remote Connect `SparkSession` conflict in the same process | Call `.stop()` on any existing local session before creating a remote one |
 
 # Citations

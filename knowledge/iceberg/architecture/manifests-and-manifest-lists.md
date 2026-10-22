@@ -4,7 +4,7 @@ title: Manifests and Manifest Lists
 description: Structure of Iceberg manifest list vs. manifest files — sequence numbers, data vs. delete manifests, and the partition-level summaries used for file pruning during scan planning.
 aliases: [manifest file, manifest list, data manifest, delete manifest, manifest_entry, field_summary, scan planning pruning]
 tags: [iceberg, architecture, manifests, manifest-list, scan-planning, spec]
-timestamp: 2026-07-31T00:00:00Z
+timestamp: 2026-10-22T00:00:00Z
 resource: https://iceberg.apache.org/spec
 ---
 
@@ -33,8 +33,11 @@ For delete-file specifics tracked inside delete manifests, see
   changes, old files stay in the old manifest and new files go to fresh
   manifests written under the new spec.
 - **Sequence numbers** record relative write order and are what determines
-  which delete files apply to which data files (a delete only applies to
-  data with an equal-or-lower sequence number, with a few special cases).
+  which delete files apply to which data files (in general a delete applies
+  only to *older* data — strictly lower data sequence number — in the same
+  partition; position deletes and deletion vectors also apply at an equal
+  sequence number, and unpartitioned equality deletes are global — see
+  [row-level-deletes.md](row-level-deletes.md)).
 - Manifest-list `partitions` summaries (field_summary) let scan planning
   skip an entire manifest without opening it, using per-partition-field
   lower/upper bounds and null/NaN flags.
